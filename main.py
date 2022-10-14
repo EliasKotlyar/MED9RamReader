@@ -6,8 +6,10 @@ from argparse import ArgumentParser
 from tp20 import TP20Transport
 from kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE
 import can
+import struct
 
 CHUNK_SIZE = 4
+from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
 class SocketCan:
     def __init__(self):
         self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     print("Connecting using KWP2000...")
     destId = 0x01;
     timeout = 1
-    debug = False
+    debug = True
     tp20 = TP20Transport(socketcan,destId, timeout, debug)
     kwp_client = KWP2000Client(tp20)
 
@@ -49,3 +51,16 @@ if __name__ == "__main__":
 
     status = kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.STATUS_FLASH)
     print("Flash status", status)
+    
+    print("\nRequest seed")
+    seed = kwp_client.security_access(ACCESS_TYPE.REQUEST_SEED)
+    print(f"seed: {seed.hex()}")
+    
+    seed_int = struct.unpack(">I", seed)[0]
+    key_int = seed_int + 0x00011170
+    key = struct.pack(">I", key_int)
+    print(f"key: {key.hex()}")
+
+    print("\n Send key")
+    kwp_client.security_access(ACCESS_TYPE.SEND_KEY, key)
+    
