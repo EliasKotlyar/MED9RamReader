@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 #from panda import Panda
 from tp20 import TP20Transport
-from kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE
+from kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE ,DYNAMIC_DEFINITION_TYPE,DynamicSourceDefinition
 import can
 import struct
 from sa2 import SA2
@@ -64,4 +64,10 @@ if __name__ == "__main__":
 
     print("\n Send key")
     kwp_client.security_access(ACCESS_TYPE.PROGRAMMING_SEND_KEY, key)
+    print("\n Acess granted!")
+    #kwp_client.read_data_by_identifier(0xF199)
+    dyn = DynamicSourceDefinition(0,0,4,0x804334)
+    print(dyn)
+    
+    kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF1 ,[dyn],4,1)
     

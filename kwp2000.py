@@ -4,7 +4,7 @@ from enum import IntEnum
 
 
 from tp20 import TP20Transport
-
+from typing import  NamedTuple, List
 
 class NegativeResponseError(Exception):
     def __init__(self, message, service_id, error_code):
@@ -91,6 +91,17 @@ class COMPRESSION_TYPE(IntEnum):
 class ENCRYPTION_TYPE(IntEnum):
     UNENCRYPTED = 0x0
 
+class DYNAMIC_DEFINITION_TYPE(IntEnum):
+    DEFINE_BY_LOCAL_IDENTIFIER = 1
+    DEFINE_BY_COMMON_IDENTIFIER = 2
+    DEFINE_BY_MEMORY_ADDRESS = 3
+    CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER = 4
+  
+class DynamicSourceDefinition(NamedTuple):
+    data_identifier: int
+    position: int
+    memory_size: int
+    memory_address: int
 
 _negative_response_codes = {
     0x10: "generalReject",
@@ -258,4 +269,49 @@ class KWP2000Client:
     def stop_communication(self) -> bytes:
         return self._kwp(SERVICE_TYPE.STOP_COMMUNICATION)
 
+    def read_memory_by_address(self, memory_address: int, memory_size: int, memory_address_bytes: int = 4, memory_size_bytes: int = 1):
+        if memory_address_bytes < 1 or memory_address_bytes > 4:
+          raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
+        if memory_size_bytes < 1 or memory_size_bytes > 4:
+          raise ValueError('invalid memory_size_bytes: {}'.format(memory_size_bytes))
+        data = bytes([memory_size_bytes << 4 | memory_address_bytes])
+        
+        if memory_address >= 1 << (memory_address_bytes * 8):
+          raise ValueError('invalid memory_address: {}'.format(memory_address))
+        data += struct.pack('!I', memory_address)[4 - memory_address_bytes:]
+        if memory_size >= 1 << (memory_size_bytes * 8):
+          raise ValueError('invalid memory_size: {}'.format(memory_size))
+        data += struct.pack('!I', memory_size)[4 - memory_size_bytes:]
+        
+        resp = self._kwp(SERVICE_TYPE.READ_MEMORY_BY_ADDRESS, data=data)
+        return resp
+    def read_data_by_identifier(self, data_identifier_type):
+        # TODO: support list of identifiers
+        data = struct.pack('!H', data_identifier_type)
+        resp = self._kwp(SERVICE_TYPE.READ_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
+        resp_id = struct.unpack('!H', resp[0:2])[0] if len(resp) >= 2 else None
+        if resp_id != data_identifier_type:
+            raise ValueError('invalid response data identifier: {}'.format(hex(resp_id)))
+        return resp[2:]
+    def dynamically_define_data_identifier(self, dynamic_definition_type: DYNAMIC_DEFINITION_TYPE, dynamic_data_identifier: int,source_definitions: List[DynamicSourceDefinition], memory_address_bytes: int = 4, memory_size_bytes: int = 1):
+        if memory_address_bytes < 1 or memory_address_bytes > 4:
+          raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
+        if memory_size_bytes < 1 or memory_size_bytes > 4:
+          raise ValueError('invalid memory_size_bytes: {}'.format(memory_size_bytes))
+        
+        data = struct.pack('!B', dynamic_data_identifier)
+        if dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS:
+          data += struct.pack('!B', dynamic_definition_type) # definitionMode
+          data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
+          data += struct.pack('!B', memory_size_bytes) # memorySize 
+          data += struct.pack('!B', 0x80) # High Byte
+          data += struct.pack('!B', 0x00) # Middle Byte
+          data += struct.pack('!B', 0x00) # Low Byte
 
+          
+        elif dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER:
+          pass
+        else:
+          raise ValueError('invalid dynamic identifier type: {}'.format(hex(dynamic_definition_type)))
+
+        self._kwp(SERVICE_TYPE.DYNAMICALLY_DEFINE_LOCAL_IDENTIFIER, subfunction=None, data=data)
