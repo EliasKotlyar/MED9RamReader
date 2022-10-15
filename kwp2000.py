@@ -54,6 +54,7 @@ class SERVICE_TYPE(IntEnum):
     START_ROUTINE_BY_ADDRESS = 0x38
     STOP_ROUTINE_BY_ADDRESS = 0x39
     REQUEST_ROUTINE_RESULTS_BY_ADDRESS = 0x3A
+
     WRITE_DATA_BY_LOCAL_IDENTIFIER = 0x3B
     WRITE_MEMORY_BY_ADDRESS = 0x3D
     TESTER_PRESENT = 0x3E
@@ -313,8 +314,16 @@ class KWP2000Client:
         
           
         elif dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER:
-          pass
+            data += struct.pack('!B', dynamic_definition_type)
+            data += struct.pack('!B', 0x01)
+            data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
         else:
           raise ValueError('invalid dynamic identifier type: {}'.format(hex(dynamic_definition_type)))
 
         self._kwp(SERVICE_TYPE.DYNAMICALLY_DEFINE_LOCAL_IDENTIFIER, subfunction=None, data=data)
+    def write_data_by_identifier(self, data_identifier_type: int,data_identifier_value:int):
+        data = struct.pack('!B', data_identifier_type)
+        data += struct.pack('!B', data_identifier_value)
+
+        self._kwp(SERVICE_TYPE.WRITE_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
+        

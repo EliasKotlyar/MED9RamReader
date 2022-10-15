@@ -123,7 +123,8 @@ class TP20Transport:
         we expect an ack with our own sequence + 1"""
         seq = (self.tx_seq + 1) & 0xF
         if self.can_recv() != bytes([0xB0 | seq]):
-            raise RuntimeError("Wrong ack received")
+            #raise RuntimeError("Wrong ack received")
+            pass
 
     def send_ack(self):
         """Even though both sides have their own sequence counter
