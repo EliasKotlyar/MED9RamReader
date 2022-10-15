@@ -40,7 +40,7 @@ if __name__ == "__main__":
     print("Connecting using KWP2000...")
     destId = 0x01;
     timeout = 1
-    debug = True
+    debug = False
     tp20 = TP20Transport(socketcan,destId, timeout, debug)
     kwp_client = KWP2000Client(tp20)
 
@@ -66,8 +66,14 @@ if __name__ == "__main__":
     kwp_client.security_access(ACCESS_TYPE.PROGRAMMING_SEND_KEY, key)
     print("\n Acess granted!")
     #kwp_client.read_data_by_identifier(0xF199)
-    dyn = DynamicSourceDefinition(0,0,4,0x804334)
-    print(dyn)
     
+    
+    
+    
+    dyn = DynamicSourceDefinition(0,0,4,0x8043b1)
     kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF1 ,[dyn],4,1)
+    
+    #kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF3 ,[dyn],4,1)
+    print(kwp_client.read_data_by_identifier(0xF1))
+    
     

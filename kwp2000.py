@@ -287,12 +287,12 @@ class KWP2000Client:
         return resp
     def read_data_by_identifier(self, data_identifier_type):
         # TODO: support list of identifiers
-        data = struct.pack('!H', data_identifier_type)
+        data = struct.pack('!B', data_identifier_type)
         resp = self._kwp(SERVICE_TYPE.READ_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
-        resp_id = struct.unpack('!H', resp[0:2])[0] if len(resp) >= 2 else None
+        resp_id = struct.unpack('!B', resp[0:1])[0] if len(resp) >= 2 else None
         if resp_id != data_identifier_type:
             raise ValueError('invalid response data identifier: {}'.format(hex(resp_id)))
-        return resp[2:]
+        return resp[1:]
     def dynamically_define_data_identifier(self, dynamic_definition_type: DYNAMIC_DEFINITION_TYPE, dynamic_data_identifier: int,source_definitions: List[DynamicSourceDefinition], memory_address_bytes: int = 4, memory_size_bytes: int = 1):
         if memory_address_bytes < 1 or memory_address_bytes > 4:
           raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
@@ -301,13 +301,16 @@ class KWP2000Client:
         
         data = struct.pack('!B', dynamic_data_identifier)
         if dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS:
-          data += struct.pack('!B', dynamic_definition_type) # definitionMode
-          data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
-          data += struct.pack('!B', memory_size_bytes) # memorySize 
-          data += struct.pack('!B', 0x80) # High Byte
-          data += struct.pack('!B', 0x00) # Middle Byte
-          data += struct.pack('!B', 0x00) # Low Byte
-
+            
+          for s in source_definitions:
+              data += struct.pack('!B', dynamic_definition_type) # definitionMode
+              data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
+              data += struct.pack('!B', 0x01) # memorySize 
+              data += s.memory_address.to_bytes(3, byteorder='big')
+          #data += struct.pack('!B', 0x80) # Middle Byte
+          #data += struct.pack('!B', 0x43) # Low Byte
+          #data += struct.pack('!B', 0xB1) # Low Byte
+        
           
         elif dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER:
           pass
