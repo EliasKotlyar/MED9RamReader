@@ -306,11 +306,8 @@ class KWP2000Client:
           for s in source_definitions:
               data += struct.pack('!B', dynamic_definition_type) # definitionMode
               data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
-              data += struct.pack('!B', 0x01) # memorySize 
+              data += struct.pack('!B', s.memory_size) # memorySize 
               data += s.memory_address.to_bytes(3, byteorder='big')
-          #data += struct.pack('!B', 0x80) # Middle Byte
-          #data += struct.pack('!B', 0x43) # Low Byte
-          #data += struct.pack('!B', 0xB1) # Low Byte
         
           
         elif dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER:
@@ -324,6 +321,9 @@ class KWP2000Client:
     def write_data_by_identifier(self, data_identifier_type: int,data_identifier_value:int):
         data = struct.pack('!B', data_identifier_type)
         data += struct.pack('!B', data_identifier_value)
+        data += struct.pack('!B', data_identifier_value)
+        data += struct.pack('!B', data_identifier_value)
+ 
 
         self._kwp(SERVICE_TYPE.WRITE_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
         

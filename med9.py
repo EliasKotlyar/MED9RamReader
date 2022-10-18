@@ -76,15 +76,16 @@ class MED9:
         if self.debug:
             
             print(args)
-    def readMemory(self,memoryAdress):
-        dyn = DynamicSourceDefinition(0,0,4,memoryAdress)
+    def readMemory(self,memoryAdress,memorysize=1):
+        dyn = DynamicSourceDefinition(0,0,memorysize,memoryAdress)
         self.kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF1 ,[dyn],4,1)
         data = self.kwp_client.read_data_by_identifier(0xF1)
         self.kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER, 0xF1 ,[dyn],4,1)
         self.keepChannelAlive()
         return data
     def writeMemory(self,memoryAdress, value):
-        dyn = DynamicSourceDefinition(0,0,4,memoryAdress)
+        memorysize=1
+        dyn = DynamicSourceDefinition(0,0,memorysize,memoryAdress)
         self.kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF2 ,[dyn],4,1)
         self.kwp_client.write_data_by_identifier(0xF2,value)
         self.kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER, 0xF2 ,[dyn],4,1)
