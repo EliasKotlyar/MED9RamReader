@@ -5,28 +5,16 @@ import struct
 import time
 CHUNK_SIZE = 4
 from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
-
+from canbus import CANBUS
 
 class MED9:
-    def __init__(self,channel = "can0", debug=False):
-        self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
+    def __init__(self,canbus = False, debug=False):
+        self.bus = CANBUS()
         self.debug = debug
         self.tp20 = False
         self.kwp_client = False
-    def can_recv(self,timeout = 1):
-        message = self.bus.recv(timeout) 
-        if message is None:
-            self.print('Timeout occurred, no message.')
-        ret = []
-        ret.append((message.arbitration_id, 0, message.data, 0))
-        return ret
-        pass
-    def can_send(self,addr, dat, timeout):
-        msg = can.Message(
-            arbitration_id=addr, data=dat, is_extended_id=False
-        )
-        self.bus.send(msg,timeout)
-        pass
+
+
     def calculateSA2(self,seed):
         seedData = 0x5FBD5DBD
         #note: original java implementation used an "unsigned shift" for the rshift, but python numbers don't "have" a visible sign bit
@@ -43,7 +31,7 @@ class MED9:
         destId = 0x01;
         timeout = 1
         
-        self.tp20 = TP20Transport(self,destId, timeout, self.debug)
+        self.tp20 = TP20Transport(self.bus,destId, timeout, self.debug)
         self.kwp_client = KWP2000Client(self.tp20)
         
         self.print("Reading ecu identification & flash status")
@@ -74,7 +62,6 @@ class MED9:
         
     def print(self,*args):
         if self.debug:
-            
             print(args)
     def readMemory(self,memoryAdress,memorysize=1):
         dyn = DynamicSourceDefinition(0,0,memorysize,memoryAdress)

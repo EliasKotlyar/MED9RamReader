@@ -9,8 +9,8 @@ if __name__ == "__main__":
     # debug = True
     med9 = MED9("can0",debug)
     med9.connect()
-    address = 0x007fc99a
-    databyte = med9.readMemory(address,4)
+    address = 0x00802568
+    databyte = med9.readMemory(address,2)
     print(hex(address)+ ":" + databyte.hex())
         
         
