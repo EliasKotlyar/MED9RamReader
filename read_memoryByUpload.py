@@ -6,19 +6,11 @@ from med9 import MED9
     
 if __name__ == "__main__":
     debug = False
-    # debug = True
+    debug = True
     med9 = MED9("can0",debug)
     med9.connect()
-    
-    address = 0x801200
-    #value = 0x1050305
-    
-    #address = 0x5c6338
-    value = 0x57cc0739
-    
-    #med9.writeRamCustomMethod(address,value)
-    
-    databyte = med9.readMemory(address,4)
+    address = 0x480000
+    databyte = med9.readMemoryRequestUpload(address,0x200000)
     print(hex(address)+ ":" + databyte.hex())
         
         

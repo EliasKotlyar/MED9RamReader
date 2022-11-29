@@ -10,7 +10,9 @@ if __name__ == "__main__":
     med9 = MED9("can0",debug)
     med9.connect()
     memory_address = 0x800000
-    memory_size = 0x2000
+    memory_size = 0x4B60
+    
+
     filename = "dump.bin"
     print("Dumping Memmory...")
     CHUNK_SIZE = 50
