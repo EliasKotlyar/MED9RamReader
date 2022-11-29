@@ -5,7 +5,7 @@ import struct
 import time
 CHUNK_SIZE = 4
 from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
-from canbus import CANBUS
+from connections import CANBUS
 from ccp import CcpClient, BYTE_ORDER
 
 class MED9:
