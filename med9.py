@@ -5,11 +5,22 @@ import struct
 import time
 CHUNK_SIZE = 4
 from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
-
-
+import sys
+from connections import j2534_connection
 class MED9:
     def __init__(self,channel = "can0", debug=False):
-        self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
+
+       
+# its win32, maybe there is win64 too?
+        is_windows = sys.platform.startswith('win')
+        if is_windows:
+            conn = j2534_connection.J2534Connection()
+            pass
+        else:
+            self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
+
+
+        
         self.debug = debug
         self.tp20 = False
         self.kwp_client = False

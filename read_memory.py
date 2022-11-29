@@ -13,6 +13,7 @@ if __name__ == "__main__":
     databyte = med9.readMemory(address,4)
     print(hex(address)+ ":" + databyte.hex())
         
+
         
     
     
