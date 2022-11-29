@@ -1,11 +1,20 @@
+from .j2534_connection import J2534Connection
+
 import can
 import struct
 import time
-
+import sys
 
 class CANBUS:
     def __init__(self):
-        self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
+        is_windows = sys.platform.startswith('win')
+        if is_windows:
+            self.bus = J2534Connection()
+            self.bus.open()
+            pass
+        else:
+            self.bus = can.interface.Bus(channel="can0", bustype="socketcan")
+
         self.debug = False
     def can_send(self,addr, dat, timeout):
         msg = can.Message(

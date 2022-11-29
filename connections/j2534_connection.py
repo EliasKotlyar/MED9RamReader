@@ -1,5 +1,3 @@
-
-
 import queue
 import threading
 import logging
@@ -11,6 +9,7 @@ from .j2534 import Ioctl_Flags
 from .j2534 import Ioctl_Parameters
 from .j2534 import SCONFIG
 from .j2534 import Error_ID
+import can
 
 import ctypes
 
@@ -60,11 +59,12 @@ class J2534Connection():
         debug = False
         self.logger = logging.getLogger()
 
+
         # Set up a J2534 interface using the DLL provided
-        self.interface = J2534(windll=j2534DLL, rxid=0, txid=0)
+        self.interface = J2534(windll=j2534DLL)
 
         # Set the protocol to ISO15765, Baud rate to 500000
-        self.protocol = Protocol_ID.ISO15765
+        self.protocol = Protocol_ID.CAN
         self.baudrate = 500000
 
         # Open the interface (connect to the DLL)
@@ -100,7 +100,7 @@ class J2534Connection():
 
         # Set the filters and clear the read buffer (filters will be set based on tx/rxids)
         self.result = self.interface.PassThruStartMsgFilter(
-            self.channelID, self.protocol.value
+           self.channelID, self.protocol.value
         )
         self.result = self.interface.PassThruIoctl(
             self.channelID, Ioctl_ID.CLEAR_RX_BUFFER
@@ -218,7 +218,7 @@ class J2534Connection():
             timedout = True
 
         if timedout:
-            raise TimeoutException(
+            raise Exception(
                 "Did not received response from J2534 RxQueue (timeout=%s sec)"
                 % timeout
             )
@@ -228,3 +228,21 @@ class J2534Connection():
     def empty_rxqueue(self):
         while not self.rxqueue.empty():
             self.rxqueue.get()
+    # Send and Receive Commands:
+    def send(self,msg: can.Message,timeout):
+        Data = msg.arbitration_id.to_bytes(4, "big") + msg.data
+        self.specific_send( Data)
+        pass
+
+    def recv(self,timeout):
+        frame = self.specific_wait_frame(timeout)
+        #print(frame.hex())
+        can_message_id = int.from_bytes(frame[0:4], "big")
+        can_data = frame[4 : len(frame)]
+        
+        msg = can.Message(
+            arbitration_id=can_message_id, data=can_data, is_extended_id=False
+        )
+        return msg
+        
+

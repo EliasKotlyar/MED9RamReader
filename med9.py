@@ -5,12 +5,12 @@ import struct
 import time
 CHUNK_SIZE = 4
 from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
-from connections import CANBUS
+from connections import canbus
 from ccp import CcpClient, BYTE_ORDER
 
 class MED9:
-    def __init__(self,canbus = False, debug=False):
-        self.bus = CANBUS()
+    def __init__(self, debug=False):
+        self.bus = canbus.CANBUS()
         self.debug = debug
         self.tp20 = False
         self.kwp_client = False

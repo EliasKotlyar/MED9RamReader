@@ -51,7 +51,7 @@ class J2534:
     dllPassThruStartMsgFilter = None
     dllPassThruIoctl = None
 
-    def __init__(self, windll, rxid, txid):
+    def __init__(self, windll):
 
         global dllPassThruOpen
         global dllPassThruClose
@@ -67,8 +67,9 @@ class J2534:
         global dllPassThruIoctl
 
         self.hDLL = ctypes.cdll.LoadLibrary(windll)
-        self.rxid = rxid.to_bytes(4, "big")
-        self.txid = txid.to_bytes(4, "big")
+        #rxid=0x7E8, txid=0x7E0
+        #self.rxid = rxid.to_bytes(4, "big")
+        #self.txid = txid.to_bytes(4, "big")
 
         self.logger = logging.getLogger()
 
@@ -256,7 +257,7 @@ class J2534:
             if Error_ID(result) == Error_ID.ERR_BUFFER_EMPTY or pNumMsgs == 0:
                 return None, None, 0
             elif pMsg.RxStatus == 0:
-                return Error_ID(result), bytes(pMsg.Data[4 : pMsg.DataSize]), pNumMsgs
+                return Error_ID(result), bytes(pMsg.Data[0:pMsg.DataSize ]), pNumMsgs
             # else:
             #    self.logger.debug("No valid response received: " + str(pMsg.RxStatus) + " - " + str(bytes(pMsg.Data[0:pMsg.DataSize])) + " - " + str(pMsg.Error_ID(result)))
 
@@ -271,7 +272,7 @@ class J2534:
         # Generic OBD2 testing:
         # Data = b'\x00\x00\x07\x00' + Data
 
-        Data = self.txid + Data
+        #Data = self.txid + Data
         # self.logger.info("Sending data: " + str(Data.hex()))
 
         for i in range(0, len(Data)):
@@ -359,7 +360,7 @@ class J2534:
         # txID = bytes([0x00, 0x00, 0x07, 0x00])
 
         # rxID = bytes([0x00, 0x00, 0x07, 0xE8])
-
+        
         txmsg = PASSTHRU_MSG()
         msgMask = PASSTHRU_MSG()
         msgPattern = PASSTHRU_MSG()
@@ -377,7 +378,7 @@ class J2534:
         msgMask.Timestamp = 0
         msgMask.DataSize = 4
         for i in range(0, 4):
-            msgMask.Data[i] = 0xFF
+            msgMask.Data[i] = 0x00
 
         msgPattern.ProtocolID = protocol
         msgPattern.RxStatus = 0
@@ -391,17 +392,17 @@ class J2534:
         msgFlow.Timestamp = 0
         msgFlow.DataSize = 4
 
-        for i in range(0, len(self.txid)):
-            msgFlow.Data[i] = self.txid[i]
+        #for i in range(0, len(self.txid)):
+        #    msgFlow.Data[i] = self.txid[i]
 
-        for i in range(0, len(self.rxid)):
-            msgPattern.Data[i] = self.rxid[i]
+        for i in range(0, 4):
+            msgPattern.Data[i] = 0
 
         msgID = c_ulong(0)
 
         result = dllPassThruStartMsgFilter(
             ChannelID,
-            c_ulong(Filter.FLOW_CONTROL_FILTER.value),
+            c_ulong(Filter.PASS_FILTER.value),
             byref(msgMask),
             byref(msgPattern),
             byref(msgFlow),

@@ -7,7 +7,7 @@ from med9 import MED9
 if __name__ == "__main__":
     debug = False
     # debug = True
-    med9 = MED9("can0",debug)
+    med9 = MED9(debug)
     med9.connect()
     
     address = 0x801200
