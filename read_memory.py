@@ -2,23 +2,26 @@
 import tqdm
 from argparse import ArgumentParser
 from med9 import MED9
-
+import argparse
     
 if __name__ == "__main__":
     debug = False
-    # debug = True
+    #debug = True
     med9 = MED9(debug)
     med9.connect()
-    
-    address = 0x801200
-    #value = 0x1050305
-    
-    #address = 0x5c6338
-    value = 0x57cc0739
-    
-    #med9.writeRamCustomMethod(address,value)
-    
-    databyte = med9.readMemory(address,4)
+
+    parser = argparse.ArgumentParser(
+                    prog = 'MED9RamReader',
+                    description = 'Read ram of MED9',
+                    epilog = '')
+    parser.add_argument('address',default=0x801200)
+    parser.add_argument('size',default=4)
+
+    args = parser.parse_args()
+   
+    address = args.address
+    size = args.size
+    databyte = med9.readMemory(address,size)
     print(hex(address)+ ":" + databyte.hex())
         
 
