@@ -19,9 +19,9 @@ class MessageTimeoutError(TimeoutError):
 
 
 class TP20Transport:
-    def __init__(self, socketcan, module: int, timeout: float = 0.1, debug: bool = False):
+    def __init__(self, canbus, module: int, timeout: float = 0.1, debug: bool = False):
         """Create TP20Transport object and open a channel"""
-        self.socketcan = socketcan
+        self.canbus = canbus
         self.timeout = timeout
         self.msgs: List[Tuple[int, bytes]] = []
 
@@ -48,7 +48,7 @@ class TP20Transport:
                 if a == addr:
                     return dat
 
-            for a, _, dat, bus in self.socketcan.can_recv():
+            for a, _, dat, bus in self.canbus.can_recv():
                 if a != addr:
                     continue
 
@@ -64,7 +64,7 @@ class TP20Transport:
 
         if self.debug:
             print(f"TX: {hex(addr)} - {dat.hex()}")
-        self.socketcan.can_send(addr, dat, int(self.timeout * 1000))
+        self.canbus.can_send(addr, dat, int(self.timeout * 1000))
         time.sleep(self.time_between_packets)
 
     def open_channel(self, module: int):

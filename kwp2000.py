@@ -132,6 +132,11 @@ _negative_response_codes = {
     0x77: "blockTransferDataChecksumError",
     0x78: "reqCorrectlyRcvd-RspPending(requestCorrectlyReceived-ResponsePending)",
     0x79: "incorrectByteCountDuringBlockTransfer",
+    0x80: 'subFunctionNotSupportedInActiveDiagnosticSession',
+    0x9A: 'dataDecompressionFailed',
+    0x9B: 'dataDecryptionFailed',
+    0xA0: 'EcuNotResponding',
+    0xA1: 'EcuAddressUnknown'
 }
 
 
@@ -173,8 +178,8 @@ class KWP2000Client:
             try:
                 error_desc = _negative_response_codes[error_code]
             except BaseException:
-                error_desc = resp[3:].hex()
-
+                error_desc = resp[3:].hex() +" Code: "+ hex(error_code)
+                
             raise NegativeResponseError("{} - {}".format(service_desc, error_desc), service_id, error_code)
 
         # positive response
@@ -326,4 +331,28 @@ class KWP2000Client:
  
 
         self._kwp(SERVICE_TYPE.WRITE_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
-        
+    
+    
+    def request_upload(
+        self,
+        memory_address: int,
+        memory_size: int,
+    ):
+        if memory_address > 0xffffff:
+          raise FlashException("KWP only supports 3-byte addresses!")
+        if memory_size > 0xffffff:
+          raise FlashException("Memory Size??")
+        up = bytearray()
+        up += memory_address.to_bytes(3, byteorder='big')
+        up += struct.pack('!B', 0)
+        #up += struct.pack('!B', 0)
+        up += memory_size.to_bytes(3, byteorder='big')
+        print(up.hex())
+
+        ret = self._kwp(SERVICE_TYPE.REQUEST_UPLOAD, subfunction=None, data=up)
+        if len(ret) == 1:
+            return struct.unpack(">B", ret)[0]
+        elif len(ret) == 2:
+            return struct.unpack(">H", ret)[0]
+        else:
+            raise ValueError(f"Invalid response {ret.hex()}")
