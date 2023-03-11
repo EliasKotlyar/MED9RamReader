@@ -48,7 +48,7 @@ class J2534Connection():
             j2534DLL = (
             "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt64.dll"
             )
-            raise Exception('The Program wont run in 64Bit Python...')
+            raise Exception('The Program wont run in 64Bit Python...There are some bugs with Python64bit')
         else:
             j2534DLL = (
             "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt32.dll"

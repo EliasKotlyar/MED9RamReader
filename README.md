@@ -1,10 +1,18 @@
 # MED9RamReader
 Utility to read Ram of a MED9.1 ECU
 
+## Requirements:
+Linux: 
+SocketCan capable Adapter
+
+Windows:
+OpenPort 2.0 Adapter
+Python (32 Bit)
+
 ## Usage
 
-1. Use on a computer with socketcan
-2. Run read_memory_full for reading a part of memory.
+2. Run pip install -r requirements.txt
+2. Run read_memory.py for reading a part of memory.
 
 Attention: The code is highly experimental and may break your ECU if used incorrectly.
 

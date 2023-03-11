@@ -3,7 +3,7 @@ import struct
 from enum import IntEnum
 
 
-from tp20 import TP20Transport
+from src.protocols.tp20 import TP20Transport
 from typing import  NamedTuple, List
 
 class NegativeResponseError(Exception):

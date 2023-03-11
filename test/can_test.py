@@ -2,7 +2,7 @@
 import tqdm
 from argparse import ArgumentParser
 import time
-from connections import canbus
+from src import canbus
     
 if __name__ == "__main__":
     can =canbus.CANBUS()

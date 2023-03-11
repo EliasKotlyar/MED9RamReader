@@ -1,12 +1,12 @@
-from tp20 import TP20Transport
-from kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE ,DYNAMIC_DEFINITION_TYPE,DynamicSourceDefinition
+from src.protocols.tp20 import TP20Transport
+from src.protocols.kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE ,DYNAMIC_DEFINITION_TYPE,DynamicSourceDefinition
 import can
 import struct
 import time
 CHUNK_SIZE = 4
-from kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
-from connections import canbus
-from ccp import CcpClient, BYTE_ORDER
+from src.protocols.kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, ECU_IDENTIFICATION_TYPE
+from src.connections import canbus
+from src.protocols.ccp import CcpClient, BYTE_ORDER
 
 class MED9:
     def __init__(self, debug=False):
