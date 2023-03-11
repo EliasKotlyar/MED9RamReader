@@ -8,14 +8,14 @@ from src.protocols.kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Clie
 from src.connections import canbus
 from src.protocols.ccp import CcpClient, BYTE_ORDER
 
-class MED9:
-    def __init__(self, debug=False):
+class VWDevice:
+    def __init__(self, debug=False,destId = 1):
         self.bus = canbus.CANBUS()
         self.debug = debug
         self.tp20 = False
         self.kwp_client = False
-        self.destId = 0x01
-        self.timeout = 1
+        self.destId = destId
+        self.timeout = 3
 
 
     def calculateSA2(self,seed):
@@ -46,7 +46,7 @@ class MED9:
         self.print("Flash status", status)
         
         #self.securityAccess2()
-        self.securityAccess1()
+        #self.securityAccess1()
         #self.changeSession(SESSION_TYPE.PROGRAMMING)
         #self.changeSession(SESSION_TYPE.ENGINEERING_MODE)
         
@@ -104,7 +104,8 @@ class MED9:
     def print(self,*args):
         if self.debug:
             print(args)
-    def readMemory(self,memoryAdress,memorysize=1):
+
+    def readMemory(self, memoryAdress, memorysize=1):
         dyn = DynamicSourceDefinition(0,0,memorysize,memoryAdress)
         self.kwp_client.dynamically_define_data_identifier(DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS, 0xF1 ,[dyn],4,1)
         data = self.kwp_client.read_data_by_identifier(0xF1)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import tqdm
 from argparse import ArgumentParser
-from src.med9 import MED9
+from src.devices.med9 import MED9
 import time
     
 if __name__ == "__main__":

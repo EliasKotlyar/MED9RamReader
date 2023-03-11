@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 import tqdm
 from argparse import ArgumentParser
-from src.med9 import MED9
+from src.devices.med9 import MED9
 import argparse
-    
+
 if __name__ == "__main__":
-    debug = False
-    #debug = True
-    med9 = MED9(debug)
-    med9.connect()
+    # debug = False
+    
 
     parser = argparse.ArgumentParser(
                     prog = 'MED9RamReader',
@@ -18,13 +16,12 @@ if __name__ == "__main__":
     parser.add_argument('size',default=4)
 
     args = parser.parse_args()
+
+    debug = True
+    med9 = MED9(debug)
+    med9.connect()
    
     address = args.address
     size = args.size
     databyte = med9.readMemory(address,size)
     print(hex(address)+ ":" + databyte.hex())
-        
-
-        
-    
-    
