@@ -5,6 +5,7 @@ from enum import IntEnum
 
 from src.protocols.tp20 import TP20Transport
 from typing import  NamedTuple, List
+from src.protocols.logger import Logger
 
 class NegativeResponseError(Exception):
     def __init__(self, message, service_id, error_code):
@@ -72,11 +73,13 @@ class ECU_IDENTIFICATION_TYPE(IntEnum):
     ECU_IDENT = 0x9B
     STATUS_FLASH = 0x9C
 
-
+# Taken from https://nissanecu.miraheze.org/wiki/Communication_Protocols
 class SESSION_TYPE(IntEnum):
+    DEFAULT = 0x81 
     PROGRAMMING = 0x85
     ENGINEERING_MODE = 0x86
     DIAGNOSTIC = 0x89
+    EXTENDED_DIAG = 0x92 
 
 
 class ACCESS_TYPE(IntEnum):
@@ -144,9 +147,9 @@ _negative_response_codes = {
 
 
 class KWP2000Client:
-    def __init__(self, transport: TP20Transport, debug: bool = False):
+    def __init__(self, transport: TP20Transport, logger:  Logger = None):
         self.transport = transport
-        self.debug = debug
+        self.logger = logger
 
     def _kwp(self, service_type: SERVICE_TYPE, subfunction: int = None, data: bytes = None) -> bytes:
         req = bytes([service_type])
@@ -156,14 +159,14 @@ class KWP2000Client:
         if data is not None:
             req += data
 
-        if self.debug:
-            print(f"KWP TX: {req.hex()}")
+        if self.logger:
+            self.logger.log(f"KWP TX: {req.hex()}")
 
         self.transport.send(req)
         resp = self.transport.recv()
 
-        if self.debug:
-            print(f"KWP RX: {resp.hex()}")
+        if self.logger:
+            self.logger.log(f"KWP RX: {resp.hex()}")
 
         resp_sid = resp[0] if len(resp) > 0 else None
 
@@ -269,8 +272,6 @@ class KWP2000Client:
         chk = struct.pack(">H", checksum)
         return self.start_routine_by_local_identifier(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, start + end + chk)
 
-    def transfer_data(self) -> bytes:
-        return self._kwp(SERVICE_TYPE.TRANSFER_DATA)
     def transfer_data(self, data: bytes) -> bytes:
         return self._kwp(SERVICE_TYPE.TRANSFER_DATA, data=data)
     def request_transfer_exit(self) -> bytes:

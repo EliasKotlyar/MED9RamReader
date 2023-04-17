@@ -8,11 +8,11 @@ from src.protocols.kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Clie
 from src.connections import canbus
 from src.protocols.ccp import CcpClient, BYTE_ORDER
 from src.crypto.secaccess import SecurityAccessInterface
-
+from src.protocols.logger import Logger
 class VWDevice:
-    def __init__(self, debug=False,destId = 1):
+    def __init__(self, logger:  Logger = None,destId = 1):
         self.bus = canbus.CANBUS()
-        self.debug = debug
+        self.logger = logger
         self.tp20 = False
         self.kwp_client = False
         self.destId = destId
@@ -24,8 +24,8 @@ class VWDevice:
         self.print("Connecting using KWP2000...")
 
         
-        self.tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.debug)
-        self.kwp_client = KWP2000Client(self.tp20)
+        self.tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.logger)
+        self.kwp_client = KWP2000Client(self.tp20,self.logger)
         
         self.print("Reading ecu identification & flash status")
         ident = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.ECU_IDENT)
@@ -77,17 +77,17 @@ class VWDevice:
         #self.kwp_client.diagnostic_session_control(SESSION_TYPE.PROGRAMMING)
         self.kwp_client.diagnostic_session_control(session_type)
         
-        for i in range(10):
-            time.sleep(1)
-            self.print(f"\nReconnecting... {i}")
-            try:
-                tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.debug)
-                break
-            except Exception as e:
-                print(e)
-        self.tp20 = tp20
-        self.kwp_client = KWP2000Client(self.tp20)
-        self.keepChannelAlive()
+        #for i in range(10):
+        #    time.sleep(1)
+        #    self.print(f"\nReconnecting... {i}")
+        #    try:
+        #        tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.debug)
+        #        break
+        #    except Exception as e:
+        #        print(e)
+        #self.tp20 = tp20
+        #self.kwp_client = KWP2000Client(self.tp20,self.debug)
+        #self.keepChannelAlive()
         self.print("\n Session changed!")
     
     def keepChannelAlive(self):
@@ -95,8 +95,8 @@ class VWDevice:
         self.tp20.can_recv()
         
     def print(self,*args):
-        if self.debug:
-            print(args)
+        if self.logger:
+            self.logger.log(args)
 
     def readMemory2(self, memoryAdress, memorysize=1):
         data = self.kwp_client.read_memory_by_address(memory_address=memoryAdress,memory_size=memorysize)
@@ -129,13 +129,14 @@ class VWDevice:
     def readMemoryRequestUpload(self,memoryAdress,memorysize=1):
         self.kwp_client.request_upload(memoryAdress, memorysize)
         self.keepChannelAlive()
-        data = self.kwp_client.transfer_data()
+        data = self.kwp_client.transfer_data(data=None)
         self.kwp_client.request_transfer_exit()
         return data
-    def writeMemoryRequestDownload(self,memoryAdress,memorysize=1):
-        self.kwp_client.request_download(memoryAdress, memorysize, COMPRESSION_TYPE.COMPRESSION_1,ENCRYPTION_TYPE.ENCRYPTION_1)
+    def writeMemoryRequestDownload(self,memoryAdress,memory:bytes):
+        memorySize = len(memory)
+        self.kwp_client.request_download(memoryAdress, memorySize, COMPRESSION_TYPE.COMPRESSION_1,ENCRYPTION_TYPE.ENCRYPTION_1)
         self.keepChannelAlive()
-        data = self.kwp_client.transfer_data()
+        data = self.kwp_client.transfer_data(memory)
         self.kwp_client.request_transfer_exit()
         return data
     

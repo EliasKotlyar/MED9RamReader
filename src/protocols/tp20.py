@@ -7,9 +7,7 @@ Reference: https://jazdw.net/tp20
 import time
 import struct
 from typing import Optional, List, Tuple
-
-
-
+from src.protocols.logger import Logger
 
 BROADCAST_ADDR = 0x200
 
@@ -19,7 +17,7 @@ class MessageTimeoutError(TimeoutError):
 
 
 class TP20Transport:
-    def __init__(self, canbus, module: int, timeout: float = 0.1, debug: bool = False):
+    def __init__(self, canbus, module: int, timeout: float = 0., logger:  Logger = None):
         """Create TP20Transport object and open a channel"""
         self.canbus = canbus
         self.timeout = timeout
@@ -29,7 +27,7 @@ class TP20Transport:
         self.rx_seq = 0
         self.time_between_packets = 0.0
 
-        self.debug = debug
+        self.logger = logger
         self.open_channel(module)
 
     def can_recv(self, addr: Optional[int] = None) -> bytes:
@@ -54,8 +52,8 @@ class TP20Transport:
             if a != addr:
                 continue
 
-            if self.debug:
-                print(f"RX: {hex(a)} - {dat.hex()}")
+            if self.logger:
+                self.logger.log(f"TP20 RX: {hex(a)} - {dat.hex()}")
             self.msgs.append((a, dat))
 
         raise MessageTimeoutError("Timed out waiting for message")
@@ -64,8 +62,8 @@ class TP20Transport:
         if addr is None:
             addr = self.tx_addr
 
-        if self.debug:
-            print(f"TX: {hex(addr)} - {dat.hex()}")
+        if self.logger:
+            self.logger.log(f"TP20 TX: {hex(addr)} - {dat.hex()}")
         self.canbus.can_send(addr, dat, int(self.timeout * 1000))
         time.sleep(self.time_between_packets)
 
@@ -80,11 +78,12 @@ class TP20Transport:
         # RX ID: V = 1 (invalid), 0x1000
         # TX ID: 0x300 + V = 0 (valid), 0x0300
         # Application type: 0x01
-        self.can_send(bytes([module]) + b"\xc0\x00\x10\x00\x03\x01", BROADCAST_ADDR)
+        self.can_send(bytes([module]) +
+                      b"\xc0\x00\x10\x00\x03\x01", BROADCAST_ADDR)
 
         # Channel setup response (e.g. 00d00003a80701)
         dat = self.can_recv(BROADCAST_ADDR + module)
-        if self.debug:
+        if self.logger:
             print(f"Got channel setup response {dat.hex()}")
 
         status, rx, tx, _ = struct.unpack("<xBHHB", dat)
@@ -109,7 +108,7 @@ class TP20Transport:
         # 0x8a: 10ms * 10 = 100ms
         # 0x4a: 1ms * 10 = 10ms
         dat = self.can_recv()
-        if self.debug:
+        if self.logger:
             print(f"Got timing params {dat.hex()}")
         opcode, bs, t1, t4 = struct.unpack("<BBBxBx", dat)
         assert opcode == 0xA1
@@ -125,7 +124,7 @@ class TP20Transport:
         we expect an ack with our own sequence + 1"""
         seq = (self.tx_seq + 1) & 0xF
         if self.can_recv() != bytes([0xB0 | seq]):
-            #raise RuntimeError("Wrong ack received")
+            # raise RuntimeError("Wrong ack received")
             pass
 
     def send_ack(self):
@@ -174,6 +173,6 @@ class TP20Transport:
                 break
 
         length = struct.unpack(">H", payload[:2])[0]
-        data = payload[2 : length + 2]
+        data = payload[2: length + 2]
         assert len(data) == length
         return data
