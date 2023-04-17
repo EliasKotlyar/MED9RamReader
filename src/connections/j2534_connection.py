@@ -218,11 +218,12 @@ class J2534Connection():
             timedout = True
 
         if timedout:
-            raise Exception(
-                "Did not received response from J2534 RxQueue (timeout=%s sec)"
-                % timeout
-            )
-
+            pass
+            #raise Exception(
+            #    "Did not received response from J2534 RxQueue (timeout=%s sec)"
+            #    % timeout
+            #)
+        
         return frame
 
     def empty_rxqueue(self):
@@ -236,6 +237,8 @@ class J2534Connection():
 
     def recv(self,timeout):
         frame = self.specific_wait_frame(timeout)
+        if(frame is None):
+            return frame
         #print(frame.hex())
         can_message_id = int.from_bytes(frame[0:4], "big")
         can_data = frame[4 : len(frame)]

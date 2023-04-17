@@ -48,13 +48,15 @@ class TP20Transport:
                 if a == addr:
                     return dat
 
-            for a, _, dat, bus in self.canbus.can_recv():
-                if a != addr:
-                    continue
+            message = self.canbus.can_recv()
+            a = message.id
+            dat = message.data
+            if a != addr:
+                continue
 
-                if self.debug:
-                    print(f"RX: {hex(a)} - {dat.hex()}")
-                self.msgs.append((a, dat))
+            if self.debug:
+                print(f"RX: {hex(a)} - {dat.hex()}")
+            self.msgs.append((a, dat))
 
         raise MessageTimeoutError("Timed out waiting for message")
 

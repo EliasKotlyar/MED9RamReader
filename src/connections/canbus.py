@@ -4,6 +4,15 @@ import can
 import struct
 import time
 import sys
+from collections import namedtuple
+
+class CAN_MESSAGE():
+    def __init__(self,id,data):
+        self.id = id
+        self.data = data
+    def __str__(self):
+        return "Can Message " + str(self.id) + " " + self.data.hex()
+    
 
 class CANBUS:
     def __init__(self):
@@ -22,14 +31,12 @@ class CANBUS:
         )
         self.bus.send(msg,timeout)
         pass
-    def can_recv(self,timeout = 1):
+    def can_recv(self,timeout = 1) -> CAN_MESSAGE:
         message = self.bus.recv(timeout) 
-        if message is None:
-            self.print('Timeout occurred, no message.')
-        ret = []
-        ret.append((message.arbitration_id, 0, message.data, 0))
-        return ret
-        pass
+        if(message is not None):
+            message = CAN_MESSAGE(message.arbitration_id,message.data)
+        return message
+
     def print(self,*args):
         if self.debug:
             print(args)
