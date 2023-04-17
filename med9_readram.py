@@ -10,9 +10,9 @@ if __name__ == "__main__":
     med9 = MED9(logger)
     med9.connect()
     address = 0x8043bc
-    oldValue = med9.readMemory(address,4)
-    print("Memory:")
-    print(oldValue.hex())
+    #oldValue = med9.readMemory(address,4)
+    #print("Memory:")
+    #print(oldValue.hex())
     #med9.readMemoryByUpload(address,4)
     med9.writeMemoryByUpload(address,bytes([0x0,0x0,0x0,0x0]))
     #xor = Xor()

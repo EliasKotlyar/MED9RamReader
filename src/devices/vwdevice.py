@@ -16,7 +16,7 @@ class VWDevice:
         self.tp20 = False
         self.kwp_client = False
         self.destId = destId
-        self.timeout = 3
+        self.timeout = 30
 
 
 
@@ -77,19 +77,22 @@ class VWDevice:
         #self.kwp_client.diagnostic_session_control(SESSION_TYPE.PROGRAMMING)
         self.kwp_client.diagnostic_session_control(session_type)
         
-        #for i in range(10):
-        #    time.sleep(1)
-        #    self.print(f"\nReconnecting... {i}")
-        #    try:
-        #        tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.debug)
-        #        break
-        #    except Exception as e:
-        #        print(e)
-        #self.tp20 = tp20
-        #self.kwp_client = KWP2000Client(self.tp20,self.debug)
-        #self.keepChannelAlive()
-        self.print("\n Session changed!")
+        
     
+    def reloadClient(self):
+        for i in range(10):
+            time.sleep(1)
+            self.print(f"\nReconnecting... {i}")
+            try:
+                tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.logger)
+                break
+            except Exception as e:
+                print(e)
+        self.tp20 = tp20
+        self.kwp_client = KWP2000Client(self.tp20,self.logger)
+        self.keepChannelAlive()
+        self.print("\n Session changed!")
+
     def keepChannelAlive(self):
         self.tp20.can_send(b"\xa3")
         self.tp20.can_recv()
@@ -133,6 +136,8 @@ class VWDevice:
         self.kwp_client.request_transfer_exit()
         return data
     def writeMemoryRequestDownload(self,memoryAdress,memory:bytes):
+        #memorySize = 0x60000 
+        memoryAdress = 0x800000
         memorySize = len(memory)
         self.kwp_client.request_download(memoryAdress, memorySize, COMPRESSION_TYPE.COMPRESSION_1,ENCRYPTION_TYPE.ENCRYPTION_1)
         self.keepChannelAlive()

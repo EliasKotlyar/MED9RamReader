@@ -47,6 +47,8 @@ class TP20Transport:
                     return dat
 
             message = self.canbus.can_recv()
+            if(message is None):
+                continue
             a = message.id
             dat = message.data
             if a != addr:
@@ -174,5 +176,5 @@ class TP20Transport:
 
         length = struct.unpack(">H", payload[:2])[0]
         data = payload[2: length + 2]
-        assert len(data) == length
+        #assert len(data) == length
         return data
