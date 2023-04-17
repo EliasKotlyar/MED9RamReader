@@ -64,6 +64,7 @@ class SERVICE_TYPE(IntEnum):
 
 class ROUTINE_CONTROL_TYPE(IntEnum):
     ERASE_FLASH = 0xC4
+    UNKNOWN = 0xB8
     CALCULATE_FLASH_CHECKSUM = 0xC5
 
 
@@ -87,10 +88,12 @@ class ACCESS_TYPE(IntEnum):
 
 class COMPRESSION_TYPE(IntEnum):
     UNCOMPRESSED = 0x0
+    COMPRESSION_1 = 0x01
 
 
 class ENCRYPTION_TYPE(IntEnum):
     UNENCRYPTED = 0x0
+    ENCRYPTION_1 = 0x01
 
 class DYNAMIC_DEFINITION_TYPE(IntEnum):
     DEFINE_BY_LOCAL_IDENTIFIER = 1
@@ -266,9 +269,10 @@ class KWP2000Client:
         chk = struct.pack(">H", checksum)
         return self.start_routine_by_local_identifier(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, start + end + chk)
 
+    def transfer_data(self) -> bytes:
+        return self._kwp(SERVICE_TYPE.TRANSFER_DATA)
     def transfer_data(self, data: bytes) -> bytes:
         return self._kwp(SERVICE_TYPE.TRANSFER_DATA, data=data)
-
     def request_transfer_exit(self) -> bytes:
         return self._kwp(SERVICE_TYPE.REQUEST_TRANSFER_EXIT)
 
@@ -339,9 +343,9 @@ class KWP2000Client:
         memory_size: int,
     ):
         if memory_address > 0xffffff:
-          raise FlashException("KWP only supports 3-byte addresses!")
+          raise ValueError("KWP only supports 3-byte addresses!")
         if memory_size > 0xffffff:
-          raise FlashException("Memory Size??")
+          raise ValueError("Memory Size??")
         up = bytearray()
         up += memory_address.to_bytes(3, byteorder='big')
         up += struct.pack('!B', 0)
