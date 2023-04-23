@@ -5,17 +5,21 @@ from src.devices.bcm import BCM
 import argparse
 
 from src.protocols.kwp2000 import NegativeResponseError
-
+from src.protocols.logger import Logger
 if __name__ == "__main__":
     # debug = False
     
 
-    debug = False
-    bcm = BCM(debug)
+    
+    logger = Logger()
+    bcm = BCM(logger)
     bcm.connect()
+    #bcm.writeMemory()
+    
+    #raise Exception("test")
 
-    memory_address = 0
-    memory_size = 20000
+    memory_address = 2000
+    memory_size = 200
 
     CHUNK_SIZE = 100
     filename = "non-kessy.txt"    

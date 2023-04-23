@@ -1,3 +1,4 @@
+from src.crypto.sa_seed_key import Sa2SeedKey
 class SecurityAccessInterface:
     PROGRAMMING = 0x01
     NORMAL = 0x02
@@ -6,7 +7,6 @@ class SecurityAccessInterface:
     def calculate(self, seed: int) -> int:
         """Extract text from the currently loaded file."""
         pass
-
 
 class SA2(SecurityAccessInterface):
     def getAccessType(self) -> int:
@@ -39,3 +39,15 @@ class BCM_READ_ACCESS(SecurityAccessInterface):
             return self.NORMAL
     def calculate(self, seed: int) -> int:
         return seed + 42063    
+    
+class BCM_WRITE_ACCESS(SecurityAccessInterface):
+    def getAccessType(self) -> int:
+             return self.PROGRAMMING
+    def calculate(self, seed: int) -> int:
+        hex_string = "81 4A 0A 84 00 00 00 01 87 04 C1 1D B7 81 4A 07 87 04 C1 1D B7 6B 05 93 00 00 00 01 81 4A 0A 84 00 00 00 01 87 04 C1 1D B7 81 4A 07 87 04 C1 1D B7 6B 05 93 00 00 00 01 81 4A 0A 84 00 00 00 01 87 04 C1 1D B7 81 4A 0A 84 00 00 00 01 87 04 C1 1D B7 81 4A 07 87 04 C1 1D B7 6B 05 93 00 00 00 01 81 4A 0A 84 00 00 00 01 87 04 C1 1D B7 4C"
+        byteStr = bytearray.fromhex(hex_string)
+        vs = Sa2SeedKey(byteStr, seed)
+        return vs.execute()
+
+        
+    

@@ -22,11 +22,11 @@ class VWDevice:
 
     def connect(self):
         self.print("Connecting using KWP2000...")
-
-        
         self.tp20 = TP20Transport(self.bus,self.destId, self.timeout, self.logger)
         self.kwp_client = KWP2000Client(self.tp20,self.logger)
         
+
+    def readEcuIdent(self):
         self.print("Reading ecu identification & flash status")
         ident = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.ECU_IDENT)
         self.print("ECU identification", ident)
@@ -35,17 +35,6 @@ class VWDevice:
         
         status = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.STATUS_FLASH)
         self.print("Flash status", status)
-        
-        #self.securityAccess2()
-        #self.securityAccess1()
-        #self.changeSession(SESSION_TYPE.PROGRAMMING)
-        #self.changeSession(SESSION_TYPE.ENGINEERING_MODE)
-        
-        
-        #self.changeSession(SESSION_TYPE.ENGINEERING_MODE)
-
-        #self.securityAccess()
-        
         
         
 

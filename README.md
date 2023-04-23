@@ -16,5 +16,12 @@ Python (32 Bit)
 
 Attention: The code is highly experimental and may break your ECU if used incorrectly.
 
+## Adding new device:
+
+1. Find a suitable SGO-Binary
+2. Use VagHelperX to idenfitify SA2 Sequence
+3. Insert SA2 Sequence into secaccess.py file
+4. Use functions
+
 ### Credits
 Most of the code is based on the awesome work of https://github.com/pd0wm/pq-flasher. Many thanks!

@@ -9,10 +9,7 @@ class MED9:
 
     def connect(self):
         self.vwdevice.connect()
-        #sa2 = SA2()
-        #self.vwdevice.securityAccess1(sa2)
-
-        #self.vwdevice.changeSession(SESSION_TYPE.PROGRAMMING)
+        self.vwdevice.readEcuIdent()
 
     def readMemory(self, memoryAdress, memorysize=1):
         secAccess = MED91_WRITE_ACCESS()
