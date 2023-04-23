@@ -33,9 +33,9 @@ class MED9:
     def writeMemoryByUpload(self,memoryAdress : int, memory: bytes):
         secAccess = MED91_WRITE_ACCESS()
         self.vwdevice.securityAccess(secAccess)
-        self.vwdevice.changeSession(SESSION_TYPE.PROGRAMMING)
-        self.vwdevice.reloadClient()
-        self.vwdevice.securityAccess(secAccess)
+        #self.vwdevice.changeSession(SESSION_TYPE.PROGRAMMING)
+        #self.vwdevice.reloadClient()
+        #self.vwdevice.securityAccess(secAccess)
 
         data = self.vwdevice.writeMemoryRequestDownload(memoryAdress,memory)
         #print(f"Received Data: {data.hex()}")

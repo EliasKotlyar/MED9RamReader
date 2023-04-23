@@ -75,7 +75,8 @@ class ECU_IDENTIFICATION_TYPE(IntEnum):
 
 # Taken from https://nissanecu.miraheze.org/wiki/Communication_Protocols
 class SESSION_TYPE(IntEnum):
-    DEFAULT = 0x81 
+    OBD2_MODE = 0x81 
+    ENDOFLINE_MODE = 0x83 
     PROGRAMMING = 0x85
     ENGINEERING_MODE = 0x86
     DIAGNOSTIC = 0x89
