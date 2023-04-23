@@ -136,8 +136,7 @@ class VWDevice:
         self.kwp_client.request_transfer_exit()
         return data
     def writeMemoryRequestDownload(self,memoryAdress,memory:bytes):
-        #memorySize = 0x60000 
-        memoryAdress = 0x800000
+
         memorySize = len(memory)
         self.kwp_client.request_download(memoryAdress, memorySize, COMPRESSION_TYPE.COMPRESSION_1,ENCRYPTION_TYPE.ENCRYPTION_1)
         self.keepChannelAlive()
