@@ -72,6 +72,9 @@ class ROUTINE_CONTROL_TYPE(IntEnum):
 class ECU_IDENTIFICATION_TYPE(IntEnum):
     ECU_IDENT = 0x9B
     STATUS_FLASH = 0x9C
+    HW_NUMBER = 0x91
+    HW_NUMBER2 = 0x86
+
 
 # Taken from https://nissanecu.miraheze.org/wiki/Communication_Protocols
 class SESSION_TYPE(IntEnum):
@@ -297,9 +300,9 @@ class KWP2000Client:
         
         resp = self._kwp(SERVICE_TYPE.READ_MEMORY_BY_ADDRESS, data=data)
         return resp
-    def read_data_by_identifier(self, data_identifier_type):
+    def read_data_by_identifier(self, data_identifier_type, transmissionMode = 1, maximumResponses = 4):
         # TODO: support list of identifiers
-        data = struct.pack('!B', data_identifier_type)
+        data = struct.pack('!BBB', data_identifier_type,transmissionMode,maximumResponses)
         resp = self._kwp(SERVICE_TYPE.READ_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
         resp_id = struct.unpack('!B', resp[0:1])[0] if len(resp) >= 2 else None
         if resp_id != data_identifier_type:

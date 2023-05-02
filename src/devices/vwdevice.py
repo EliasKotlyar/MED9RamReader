@@ -9,6 +9,8 @@ from src.connections import canbus
 from src.protocols.ccp import CcpClient, BYTE_ORDER
 from src.crypto.secaccess import SecurityAccessInterface
 from src.protocols.logger import Logger
+from src.protocols.measuringblocks import MeasuringBlockGroup
+
 class VWDevice:
     def __init__(self, logger:  Logger = None,destId = 1):
         self.bus = canbus.CANBUS()
@@ -32,9 +34,17 @@ class VWDevice:
         self.print("ECU identification", ident)
         self.print(f"Part Number {ident[:10]}")
         
-        
         status = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.STATUS_FLASH)
         self.print("Flash status", status)
+
+     
+        status = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.HW_NUMBER)
+        self.print("VehicleHWNumber", status)
+
+        status = self.kwp_client.read_ecu_identifcation(ECU_IDENTIFICATION_TYPE.HW_NUMBER2)
+        self.print("VehicleHWNumber2", status)
+
+
         
         
 
@@ -64,7 +74,7 @@ class VWDevice:
         
     def changeSession(self,session_type: SESSION_TYPE):
         #self.kwp_client.diagnostic_session_control(SESSION_TYPE.PROGRAMMING)
-        self.kwp_client.diagnostic_session_control(session_type)
+        return self.kwp_client.diagnostic_session_control(session_type)
         
         
     
@@ -133,6 +143,10 @@ class VWDevice:
         self.kwp_client.request_transfer_exit()
         return data
     
+    def readMeasuringBlock(self, measuringBlockNr):
+        data = self.kwp_client.read_data_by_identifier(measuringBlockNr)
+        group = MeasuringBlockGroup(data)
+        return group
     
     def sendRawCanBusMessage(self,addr, dat, timeout):
         self.bus.can_send(addr, dat, timeout)
