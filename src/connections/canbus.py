@@ -40,3 +40,7 @@ class CANBUS:
     def print(self,*args):
         if self.debug:
             print(args)
+
+    def disconnect(self):
+        self.bus.close()
+        pass

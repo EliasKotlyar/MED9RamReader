@@ -37,28 +37,25 @@ class J2534Connection():
     """
 
     def __init__(
-        self
+            self
     ):
 
         j2534DLL = (
             "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt32.dll"
         )
         systemBytes = ctypes.sizeof(ctypes.c_voidp)
-        if(systemBytes == 8):
+        if (systemBytes == 8):
             j2534DLL = (
-            "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt64.dll"
+                "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt64.dll"
             )
             raise Exception('The Program wont run in 64Bit Python...There are some bugs with Python64bit')
         else:
             j2534DLL = (
-            "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt32.dll"
+                "C:/Program Files (x86)/OpenECU/OpenPort 2.0/drivers/openport 2.0/op20pt32.dll"
             )
-
-
 
         debug = False
         self.logger = logging.getLogger()
-
 
         # Set up a J2534 interface using the DLL provided
         self.interface = J2534(windll=j2534DLL)
@@ -69,6 +66,8 @@ class J2534Connection():
 
         # Open the interface (connect to the DLL)
         result, self.devID = self.interface.PassThruOpen()
+        if result.name == 'ERR_DEVICE_NOT_CONNECTED':
+            raise Exception("Device not connected!")
 
         if debug:
             result = self.interface.PassThruIoctl(
@@ -100,7 +99,7 @@ class J2534Connection():
 
         # Set the filters and clear the read buffer (filters will be set based on tx/rxids)
         self.result = self.interface.PassThruStartMsgFilter(
-           self.channelID, self.protocol.value
+            self.channelID, self.protocol.value
         )
         self.result = self.interface.PassThruIoctl(
             self.channelID, Ioctl_ID.CLEAR_RX_BUFFER
@@ -129,7 +128,7 @@ class J2534Connection():
 
         stmin = SCONFIG()
         stmin.Parameter = Ioctl_Parameters.STMIN_TX.value
-        
+
         st_min = 0xF2
         stmin.Value = ctypes.c_ulong(st_min)
         self.result = self.interface.PassThruIoctl(
@@ -219,33 +218,32 @@ class J2534Connection():
 
         if timedout:
             pass
-            #raise Exception(
+            # raise Exception(
             #    "Did not received response from J2534 RxQueue (timeout=%s sec)"
             #    % timeout
-            #)
-        
+            # )
+
         return frame
 
     def empty_rxqueue(self):
         while not self.rxqueue.empty():
             self.rxqueue.get()
+
     # Send and Receive Commands:
-    def send(self,msg: can.Message,timeout):
+    def send(self, msg: can.Message, timeout):
         Data = msg.arbitration_id.to_bytes(4, "big") + msg.data
-        self.specific_send( Data)
+        self.specific_send(Data)
         pass
 
-    def recv(self,timeout):
+    def recv(self, timeout):
         frame = self.specific_wait_frame(timeout)
-        if(frame is None):
+        if (frame is None):
             return frame
-        #print(frame.hex())
+        # print(frame.hex())
         can_message_id = int.from_bytes(frame[0:4], "big")
-        can_data = frame[4 : len(frame)]
-        
+        can_data = frame[4: len(frame)]
+
         msg = can.Message(
             arbitration_id=can_message_id, data=can_data, is_extended_id=False
         )
         return msg
-        
-

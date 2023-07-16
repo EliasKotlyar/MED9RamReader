@@ -12,24 +12,32 @@ class MED9:
 
 
     def readMemory(self, memoryAdress, memorysize=1):
-        secAccess = MED91_WRITE_ACCESS()
-        self.vwdevice.securityAccess(secAccess)
+        #secAccess = MED91_WRITE_ACCESS()
+        #self.vwdevice.securityAccess(secAccess)
         #data = self.vwdevice.readMemoryRequestUpload(memoryAdress,memorysize)
         data = self.vwdevice.readMemoryByDynamicIdentifier(memoryAdress, memorysize)
         return data
+    def readMemoryByAddress(self, memoryAdress, memorysize=1):
+        data = self.vwdevice.readMemoryByAddress(memoryAdress, memorysize)
+        return data
+
     def readMeasuringBlock(self, measuringBlockNr):
         data = self.vwdevice.readMeasuringBlock(measuringBlockNr)
         return data
 
-    
-    def readMemoryByUpload(self,memoryAdress : int, memorysize: int):
+    def requestMemoryReadAccess(self):
         secAccess = MED91_READ_ACCESS()
         self.vwdevice.securityAccess(secAccess)
         self.vwdevice.changeSession(SESSION_TYPE.ENGINEERING_MODE)
+    
+    def readMemoryByUpload(self,memoryAdress : int, memorysize: int):
         data = self.vwdevice.readMemoryRequestUpload(memoryAdress,memorysize)
         #print(f"Received Data: {data.hex()}")
         return data
-    
+    def dynamicallyDefineIdentifier(self,identifier : int,memoryAddress : int,memorySize:int):
+        self.vwdevice.dynamicallyDefineIdentifier(identifier,memoryAddress,memorySize)
+        pass
+
     def writeMemoryByUpload(self,memoryAdress : int, memory: bytes):
         # Sequence taken from: "Corporate Group Requirement Specification For Programming Control Units with Keyword Protocol 2000 Transport Protocol 2.0.pdf"
         self.vwdevice.readEcuIdent()
@@ -69,3 +77,5 @@ class MED9:
         
         #print(f"Received Data: {data.hex()}")
         return data
+    def disconnect(self):
+        self.vwdevice.disconnect()
