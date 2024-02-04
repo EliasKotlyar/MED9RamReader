@@ -1,3 +1,7 @@
+from enum import IntEnum
+from typing import NamedTuple
+
+
 class SERVICE_TYPE(IntEnum):
     DIAGNOSTIC_SESSION_CONTROL = 0x10
     ECU_RESET = 0x11
@@ -34,3 +38,93 @@ class SERVICE_TYPE(IntEnum):
     TESTER_PRESENT = 0x3E
     ESC_CODE = 0x80
     STOP_COMMUNICATION = 0x82
+
+
+class ROUTINE_CONTROL_TYPE(IntEnum):
+    ERASE_FLASH = 0xC4
+    UNKNOWN = 0xB8
+    CALCULATE_FLASH_CHECKSUM = 0xC5
+
+
+class ECU_IDENTIFICATION_TYPE(IntEnum):
+    ECU_IDENT = 0x9B
+    STATUS_FLASH = 0x9C
+    HW_NUMBER = 0x91
+    HW_NUMBER2 = 0x86
+
+
+# Taken from https://nissanecu.miraheze.org/wiki/Communication_Protocols
+class SESSION_TYPE(IntEnum):
+    OBD2_MODE = 0x81
+    ENDOFLINE_MODE = 0x83
+    PROGRAMMING = 0x85
+    ENGINEERING_MODE = 0x86
+    DIAGNOSTIC = 0x89
+    EXTENDED_DIAG = 0x92
+
+
+class ACCESS_TYPE(IntEnum):
+    PROGRAMMING_REQUEST_SEED = 1
+    PROGRAMMING_SEND_KEY = 2
+    REQUEST_SEED = 3
+    SEND_KEY = 4
+
+
+class COMPRESSION_TYPE(IntEnum):
+    UNCOMPRESSED = 0x0
+    COMPRESSION_1 = 0x01
+
+
+class ENCRYPTION_TYPE(IntEnum):
+    UNENCRYPTED = 0x0
+    ENCRYPTION_1 = 0x01
+
+
+class DYNAMIC_DEFINITION_TYPE(IntEnum):
+    DEFINE_BY_LOCAL_IDENTIFIER = 1
+    DEFINE_BY_COMMON_IDENTIFIER = 2
+    DEFINE_BY_MEMORY_ADDRESS = 3
+    CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER = 4
+
+
+class DynamicSourceDefinition(NamedTuple):
+    data_identifier: int
+    position: int
+    memory_size: int
+    memory_address: int
+
+
+_negative_response_codes = {
+    0x10: "generalReject",
+    0x11: "serviceNotSupported",
+    0x12: "subFunctionNotSupported-invalidFormat",
+    0x21: "busy-RepeatRequest",
+    0x22: "conditionsNotCorrect or requestSequenceError",
+    0x23: "routineNotComplete",
+    0x31: "requestOutOfRange",
+    0x33: "securityAccessDenied",
+    0x35: "invalidKey",
+    0x36: "exceedNumberOfAttempts",
+    0x37: "requiredTimeDelayNotExpired",
+    0x40: "downloadNotAccepted",
+    0x41: "improperDownloadType",
+    0x42: "cantDownloadToSpecifiedAddress",
+    0x43: "cantDownloadNumberOfBytesRequested",
+    0x50: "uploadNotAccepted",
+    0x51: "improperUploadType",
+    0x52: "cantUploadFromSpecifiedAddress",
+    0x53: "cantUploadNumberOfBytesRequested",
+    0x71: "transferSuspended",
+    0x72: "transferAborted",
+    0x74: "illegalAddressInBlockTransfer",
+    0x75: "illegalByteCountInBlockTransfer",
+    0x76: "illegalBlockTransferType",
+    0x77: "blockTransferDataChecksumError",
+    0x78: "reqCorrectlyRcvd-RspPending(requestCorrectlyReceived-ResponsePending)",
+    0x79: "incorrectByteCountDuringBlockTransfer",
+    0x80: 'subFunctionNotSupportedInActiveDiagnosticSession',
+    0x9A: 'dataDecompressionFailed',
+    0x9B: 'dataDecryptionFailed',
+    0xA0: 'EcuNotResponding',
+    0xA1: 'EcuAddressUnknown'
+}
