@@ -2,10 +2,10 @@
 import struct
 from enum import IntEnum
 
-
 from src.protocols.tp20 import TP20Transport
-from typing import  NamedTuple, List
+from typing import NamedTuple, List
 from src.protocols.logger import Logger
+
 
 class NegativeResponseError(Exception):
     def __init__(self, message, service_id, error_code):
@@ -26,41 +26,7 @@ class InvalidSubFunctionError(Exception):
     pass
 
 
-class SERVICE_TYPE(IntEnum):
-    DIAGNOSTIC_SESSION_CONTROL = 0x10
-    ECU_RESET = 0x11
-    READ_FREEZE_FRAME_DATA = 0x12
-    READ_DIAGNOSTIC_TROUBLE_CODES = 0x13
-    CLEAR_DIAGNOSTIC_INFORMATION = 0x14
-    READ_STATUS_OF_DIAGNOSTIC_TROUBLE_CODES = 0x17
-    READ_DIAGNOSITC_TROUBE_CODES_BY_STATUS = 0x18
-    READ_ECU_IDENTIFICATION = 0x1A
-    STOP_DIAGNOSTIC_SESSION = 0x20
-    READ_DATA_BY_LOCAL_IDENTIFIER = 0x21
-    READ_DATA_BY_COMMON_IDENTIFIER = 0x22
-    READ_MEMORY_BY_ADDRESS = 0x23
-    SET_DATA_RATES = 0x26
-    SECURITY_ACCESS = 0x27
-    DYNAMICALLY_DEFINE_LOCAL_IDENTIFIER = 0x2C
-    WRITE_DATA_BY_COMMON_IDENTIFIER = 0x2E
-    INPUT_OUTPUT_CONTROL_BY_COMMON_IDENTIFIER = 0x2F
-    INPUT_OUTPUT_CONTROL_BY_LOCAL_IDENTIFIER = 0x30
-    START_ROUTINE_BY_LOCAL_IDENTIFIER = 0x31
-    STOP_ROUTINE_BY_LOCAL_IDENTIFIER = 0x32
-    REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER = 0x33
-    REQUEST_DOWNLOAD = 0x34
-    REQUEST_UPLOAD = 0x35
-    TRANSFER_DATA = 0x36
-    REQUEST_TRANSFER_EXIT = 0x37
-    START_ROUTINE_BY_ADDRESS = 0x38
-    STOP_ROUTINE_BY_ADDRESS = 0x39
-    REQUEST_ROUTINE_RESULTS_BY_ADDRESS = 0x3A
 
-    WRITE_DATA_BY_LOCAL_IDENTIFIER = 0x3B
-    WRITE_MEMORY_BY_ADDRESS = 0x3D
-    TESTER_PRESENT = 0x3E
-    ESC_CODE = 0x80
-    STOP_COMMUNICATION = 0x82
 
 
 class ROUTINE_CONTROL_TYPE(IntEnum):
@@ -78,12 +44,12 @@ class ECU_IDENTIFICATION_TYPE(IntEnum):
 
 # Taken from https://nissanecu.miraheze.org/wiki/Communication_Protocols
 class SESSION_TYPE(IntEnum):
-    OBD2_MODE = 0x81 
-    ENDOFLINE_MODE = 0x83 
+    OBD2_MODE = 0x81
+    ENDOFLINE_MODE = 0x83
     PROGRAMMING = 0x85
     ENGINEERING_MODE = 0x86
     DIAGNOSTIC = 0x89
-    EXTENDED_DIAG = 0x92 
+    EXTENDED_DIAG = 0x92
 
 
 class ACCESS_TYPE(IntEnum):
@@ -102,17 +68,20 @@ class ENCRYPTION_TYPE(IntEnum):
     UNENCRYPTED = 0x0
     ENCRYPTION_1 = 0x01
 
+
 class DYNAMIC_DEFINITION_TYPE(IntEnum):
     DEFINE_BY_LOCAL_IDENTIFIER = 1
     DEFINE_BY_COMMON_IDENTIFIER = 2
     DEFINE_BY_MEMORY_ADDRESS = 3
     CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER = 4
-  
+
+
 class DynamicSourceDefinition(NamedTuple):
     data_identifier: int
     position: int
     memory_size: int
     memory_address: int
+
 
 _negative_response_codes = {
     0x10: "generalReject",
@@ -151,7 +120,7 @@ _negative_response_codes = {
 
 
 class KWP2000Client:
-    def __init__(self, transport: TP20Transport, logger:  Logger = None):
+    def __init__(self, transport: TP20Transport, logger: Logger = None):
         self.transport = transport
         self.logger = logger
 
@@ -188,8 +157,8 @@ class KWP2000Client:
             try:
                 error_desc = _negative_response_codes[error_code]
             except BaseException:
-                error_desc = resp[3:].hex() +" Code: "+ hex(error_code)
-                
+                error_desc = resp[3:].hex() + " Code: " + hex(error_code)
+
             raise NegativeResponseError("{} - {}".format(service_desc, error_desc), service_id, error_code)
 
         # positive response
@@ -206,7 +175,7 @@ class KWP2000Client:
                 raise InvalidSubFunctionError(f"invalid response subfunction: {resp_sfn_hex:x}")
 
         # return data (exclude service id and sub-function id)
-        return resp[(1 if subfunction is None else 2) :]
+        return resp[(1 if subfunction is None else 2):]
 
     def diagnostic_session_control(self, session_type: SESSION_TYPE):
         self._kwp(SERVICE_TYPE.DIAGNOSTIC_SESSION_CONTROL, subfunction=session_type)
@@ -225,11 +194,11 @@ class KWP2000Client:
         return self._kwp(SERVICE_TYPE.READ_ECU_IDENTIFICATION, data_identifier_type)
 
     def request_download(
-        self,
-        memory_address: int,
-        uncompressed_size: int,
-        compression_type: COMPRESSION_TYPE = COMPRESSION_TYPE.UNCOMPRESSED,
-        encryption_type: ENCRYPTION_TYPE = ENCRYPTION_TYPE.UNENCRYPTED,
+            self,
+            memory_address: int,
+            uncompressed_size: int,
+            compression_type: COMPRESSION_TYPE = COMPRESSION_TYPE.UNCOMPRESSED,
+            encryption_type: ENCRYPTION_TYPE = ENCRYPTION_TYPE.UNENCRYPTED,
     ):
         if memory_address > 0xFFFFFF:
             raise ValueError(f"invalid memory_address {memory_address}")
@@ -278,83 +247,83 @@ class KWP2000Client:
 
     def transfer_data(self, data: bytes) -> bytes:
         return self._kwp(SERVICE_TYPE.TRANSFER_DATA, data=data)
+
     def request_transfer_exit(self) -> bytes:
         return self._kwp(SERVICE_TYPE.REQUEST_TRANSFER_EXIT)
 
     def stop_communication(self) -> bytes:
         return self._kwp(SERVICE_TYPE.STOP_COMMUNICATION)
 
-    def read_memory_by_address(self, memory_address: int, memory_size: int, memory_address_bytes: int = 4, memory_size_bytes: int = 1):
-        if memory_address_bytes < 1 or memory_address_bytes > 4:
-          raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
-        if memory_size_bytes < 1 or memory_size_bytes > 4:
-          raise ValueError('invalid memory_size_bytes: {}'.format(memory_size_bytes))
-        data = bytes([memory_size_bytes << 4 | memory_address_bytes])
-        
-        if memory_address >= 1 << (memory_address_bytes * 8):
-          raise ValueError('invalid memory_address: {}'.format(memory_address))
-        data += struct.pack('!I', memory_address)[4 - memory_address_bytes:]
-        if memory_size >= 1 << (memory_size_bytes * 8):
-          raise ValueError('invalid memory_size: {}'.format(memory_size))
-        data += struct.pack('!I', memory_size)[4 - memory_size_bytes:]
-        
+    def read_memory_by_address(self, memory_address: int, memory_size: int):
+        byte1 = (memory_address >> 16) & 0xFF  # Most significant byte
+        byte2 = (memory_address >> 8) & 0xFF  # Middle byte
+        byte3 = memory_address & 0xFF
+        data = struct.pack('!B', byte1)
+        data += struct.pack('!B', byte2)
+        data += struct.pack('!B', byte3)
+        data += struct.pack('!B', memory_size)
+
         resp = self._kwp(SERVICE_TYPE.READ_MEMORY_BY_ADDRESS, data=data)
         return resp
-    def read_data_by_identifier(self, data_identifier_type, transmissionMode = 1, maximumResponses = 4):
+
+    def read_data_by_identifier(self, data_identifier_type, transmissionMode=1, maximumResponses=4):
         # TODO: support list of identifiers
-        data = struct.pack('!BBB', data_identifier_type,transmissionMode,maximumResponses)
+        data = struct.pack('!BBB', data_identifier_type, transmissionMode, maximumResponses)
         resp = self._kwp(SERVICE_TYPE.READ_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
         resp_id = struct.unpack('!B', resp[0:1])[0] if len(resp) >= 2 else None
         if resp_id != data_identifier_type:
             raise ValueError('invalid response data identifier: {}'.format(hex(resp_id)))
         return resp[1:]
-    def dynamically_define_data_identifier(self, dynamic_definition_type: DYNAMIC_DEFINITION_TYPE, dynamic_data_identifier: int,source_definitions: List[DynamicSourceDefinition], memory_address_bytes: int = 4, memory_size_bytes: int = 1):
+
+    def dynamically_define_data_identifier(self, dynamic_definition_type: DYNAMIC_DEFINITION_TYPE,
+                                           dynamic_data_identifier: int,
+                                           source_definitions: List[DynamicSourceDefinition],
+                                           memory_address_bytes: int = 4, memory_size_bytes: int = 1):
         if memory_address_bytes < 1 or memory_address_bytes > 4:
-          raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
+            raise ValueError('invalid memory_address_bytes: {}'.format(memory_address_bytes))
         if memory_size_bytes < 1 or memory_size_bytes > 4:
-          raise ValueError('invalid memory_size_bytes: {}'.format(memory_size_bytes))
-        
+            raise ValueError('invalid memory_size_bytes: {}'.format(memory_size_bytes))
+
         data = struct.pack('!B', dynamic_data_identifier)
         if dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.DEFINE_BY_MEMORY_ADDRESS:
-            
-          for s in source_definitions:
-              data += struct.pack('!B', dynamic_definition_type) # definitionMode
-              data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
-              data += struct.pack('!B', s.memory_size) # memorySize 
-              data += s.memory_address.to_bytes(3, byteorder='big')
-        
-          
+
+            for s in source_definitions:
+                data += struct.pack('!B', dynamic_definition_type)  # definitionMode
+                data += struct.pack('!B', 0x01)  # positionInDynamicallyDefinedLocalIdentifier
+                data += struct.pack('!B', s.memory_size)  # memorySize
+                data += s.memory_address.to_bytes(3, byteorder='big')
+
+
         elif dynamic_definition_type == DYNAMIC_DEFINITION_TYPE.CLEAR_DYNAMICALLY_DEFINED_DATA_IDENTIFIER:
             data += struct.pack('!B', dynamic_definition_type)
             data += struct.pack('!B', 0x01)
-            data += struct.pack('!B', 0x01) # positionInDynamicallyDefinedLocalIdentifier 
+            data += struct.pack('!B', 0x01)  # positionInDynamicallyDefinedLocalIdentifier
         else:
-          raise ValueError('invalid dynamic identifier type: {}'.format(hex(dynamic_definition_type)))
+            raise ValueError('invalid dynamic identifier type: {}'.format(hex(dynamic_definition_type)))
 
         self._kwp(SERVICE_TYPE.DYNAMICALLY_DEFINE_LOCAL_IDENTIFIER, subfunction=None, data=data)
-    def write_data_by_identifier(self, data_identifier_type: int,data_identifier_value:int):
+
+    def write_data_by_identifier(self, data_identifier_type: int, data_identifier_value: int):
         data = struct.pack('!B', data_identifier_type)
         data += struct.pack('!B', data_identifier_value)
         data += struct.pack('!B', data_identifier_value)
         data += struct.pack('!B', data_identifier_value)
- 
 
         self._kwp(SERVICE_TYPE.WRITE_DATA_BY_LOCAL_IDENTIFIER, subfunction=None, data=data)
-    
-    
+
     def request_upload(
-        self,
-        memory_address: int,
-        memory_size: int,
+            self,
+            memory_address: int,
+            memory_size: int,
     ):
         if memory_address > 0xffffff:
-          raise ValueError("KWP only supports 3-byte addresses!")
+            raise ValueError("KWP only supports 3-byte addresses!")
         if memory_size > 0xffffff:
-          raise ValueError("Memory Size??")
+            raise ValueError("Memory Size??")
         up = bytearray()
         up += memory_address.to_bytes(3, byteorder='big')
         up += struct.pack('!B', 0)
-        #up += struct.pack('!B', 0)
+        # up += struct.pack('!B', 0)
         up += memory_size.to_bytes(3, byteorder='big')
         print(up.hex())
 
@@ -365,3 +334,17 @@ class KWP2000Client:
             return struct.unpack(">H", ret)[0]
         else:
             raise ValueError(f"Invalid response {ret.hex()}")
+
+    def write_memory_by_address(self, memory_address: int, memory: bytes):
+        memory_size = len(memory)
+        byte1 = (memory_address >> 16) & 0xFF  # Most significant byte
+        byte2 = (memory_address >> 8) & 0xFF  # Middle byte
+        byte3 = memory_address & 0xFF
+        data = struct.pack('!B', byte1)
+        data += struct.pack('!B', byte2)
+        data += struct.pack('!B', byte3)
+        data += struct.pack('!B', memory_size)
+        data += memory
+
+        resp = self._kwp(SERVICE_TYPE.WRITE_MEMORY_BY_ADDRESS, data=data)
+        return resp

@@ -20,7 +20,9 @@ class MED9:
     def readMemoryByAddress(self, memoryAdress, memorysize=1):
         data = self.vwdevice.readMemoryByAddress(memoryAdress, memorysize)
         return data
-
+    def writeMemoryByAddress(self, memoryAdress : int, memory: bytes):
+        data = self.vwdevice.writeMemoryByAddress(memoryAdress, memory )
+        return data
     def readMeasuringBlock(self, measuringBlockNr):
         data = self.vwdevice.readMeasuringBlock(measuringBlockNr)
         return data

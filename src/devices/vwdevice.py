@@ -94,8 +94,9 @@ class VWDevice:
             self.logger.log(args)
 
     def readMemoryByAddress(self, memoryAdress, memorysize=1):
-        data = self.kwp_client.read_memory_by_address(memory_address=memoryAdress, memory_size=memorysize)
         self.keepChannelAlive()
+        data = self.kwp_client.read_memory_by_address(memory_address=memoryAdress, memory_size=memorysize)
+
         return data
 
     def dynamicallyDefineIdentifier(self, identifier: int, memoryAddress: int, memorySize: int):
@@ -179,3 +180,9 @@ class VWDevice:
             self.kwp_client.stop_communication()
         self.bus.disconnect()
         pass
+
+    def writeMemoryByAddress(self, memoryAdress: int, memory: bytes):
+        self.keepChannelAlive()
+        data = self.kwp_client.write_memory_by_address(memoryAdress, memory)
+
+        return data
