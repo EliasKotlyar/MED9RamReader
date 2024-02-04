@@ -23,20 +23,22 @@ class Int_4Bytes:
 
 class Int_3Bytes:
     def __init__(self, value: int):
-        self.bytes = 0
+        self.bytes = BitArray(uint=value, length=24)
         pass
 
     def toBytes(self):
-        return self.bytes
+        return self.bytes.tobytes()
 
 
 class DataFormatIdentifier:
     def __init__(self, comp_type: COMPRESSION_TYPE, enc_type: ENCRYPTION_TYPE):
-        self.byte = 0
+        self.bytes = BitArray(uint=0, length=8)
+        self.bytes[0:4] = comp_type
+        self.bytes[4:8] = enc_type
         pass
 
-    def toByte(self):
-        return self.byte
+    def toBytes(self):
+        return bytearray(self.bytes)
 
 
 class IDENT_9B(AbstractKwpRequest):
@@ -92,8 +94,30 @@ class REQUEST_DOWNLOAD_MED9(AbstractKwpRequest):
         identifier = DataFormatIdentifier(compression_type, encryption_type)
         memory_address = Int_4Bytes(memory_address)
         uncompressed_size = Int_4Bytes(uncompressed_size)
-        payload = bytearray([
-            identifier.toByte(), memory_address.toBytes(), uncompressed_size.toBytes()
-        ])
+        payload = identifier.toBytes() + memory_address.toBytes() + uncompressed_size.toBytes()
         ret = REQUEST_DOWNLOAD(payload)
+        super().__init__(ret.to_bytes())
+
+
+class START_ROUTINE_ERASE_FLASH(AbstractKwpRequest):
+    def __init__(self):
+        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.ERASE_FLASH, bytearray([]))
+        super().__init__(ret.to_bytes())
+
+
+class START_ROUTINE_CHECKSUM(AbstractKwpRequest):
+    def __init__(self):
+        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, bytearray([]))
+        super().__init__(ret.to_bytes())
+
+
+class GET_RESULT_ROUTINE_ERASE_FLASH(AbstractKwpRequest):
+    def __init__(self):
+        ret = REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.ERASE_FLASH, bytearray([]))
+        super().__init__(ret.to_bytes())
+
+
+class GET_RESULT_ROUTINE_CHECKSUM(AbstractKwpRequest):
+    def __init__(self):
+        ret = REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, bytearray([]))
         super().__init__(ret.to_bytes())

@@ -24,7 +24,7 @@ class READ_ECU_IDENTIFICATION(AbstractKwpRequest):
 
 
 class START_DIAGNOSTIC_SESSION(AbstractKwpRequest):
-    def __init__(self, session_type : int):
+    def __init__(self, session_type: int):
         assert session_type, int
         data = bytearray([SERVICE_TYPE.START_DIAGNOSTIC_SESSION, session_type])
         super().__init__(data)
@@ -45,16 +45,16 @@ class REQUEST_DOWNLOAD(AbstractKwpRequest):
 
 
 class START_ROUTINE_BY_LOCAL_IDENTIFIER(AbstractKwpRequest):
-    def __init__(self, data: bytearray):
+    def __init__(self, local_identifier: int, data: bytearray):
         assert data, bytearray
-        data = bytearray([SERVICE_TYPE.START_ROUTINE_BY_LOCAL_IDENTIFIER]) + data
+        data = bytearray([SERVICE_TYPE.START_ROUTINE_BY_LOCAL_IDENTIFIER, local_identifier]) + data
         super().__init__(data)
 
 
 class REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER(AbstractKwpRequest):
-    def __init__(self, data: bytearray):
+    def __init__(self, local_identifier: int, data: bytearray):
         assert data, bytearray
-        data = bytearray([SERVICE_TYPE.REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER]) + data
+        data = bytearray([SERVICE_TYPE.REQUEST_ROUTINE_RESULTS_BY_LOCAL_IDENTIFIER, local_identifier]) + data
         super().__init__(data)
 
 
@@ -70,3 +70,4 @@ class REQUEST_TRANSFER_EXIT(AbstractKwpRequest):
         assert data, bytearray
         data = bytearray([SERVICE_TYPE.REQUEST_TRANSFER_EXIT]) + data
         super().__init__(data)
+

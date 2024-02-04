@@ -40,19 +40,19 @@ class FlashProgrammer:
         # self.kwp.send(SEND_KEY(key))
 
     def flash_block(self):
-        self.kwp.send(RequestDownload(key))
+        self.kwp.send(REQUEST_DOWNLOAD_MED9())
 
-        self.kwp.send(StartRoutineByLocalIdentifier0xC4())
+        self.kwp.send(START_ROUTINE_ERASE_FLASH())
 
-        self.kwp.send(RequestRoutineResultsByLocalIdentifier0xC4())
+        self.kwp.send(GET_RESULT_ROUTINE_ERASE_FLASH())
 
-        self.kwp.send(TransferData())
+        self.kwp.send(TRANSFER_DATA())
 
-        self.kwp.send(TransferExit())
+        self.kwp.send(REQUEST_TRANSFER_EXIT())
 
-        self.kwp.send(StartRoutineByLocalIdentifier0xC5())
+        self.kwp.send(START_ROUTINE_CHECKSUM())
 
-        self.kwp.send(RequestRoutineResultsByLocalIdentifier0xC5())
+        self.kwp.send(GET_RESULT_ROUTINE_CHECKSUM())
 
     def calculate(self, seed):
         pass
