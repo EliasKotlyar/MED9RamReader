@@ -90,7 +90,7 @@ class IDENT_9C_Response(KwpResponse):
 class REQUEST_SEED_RESPONSE(KwpResponse):
     def __init__(self, data: bytearray):
         super().__init__(data)
-        self.seed = BitArray(bytes=data[2:6], length=32).int
+        self.seed = BitArray(bytes=data[2:6], length=32).uint
 
     def __str__(self):
         return (
