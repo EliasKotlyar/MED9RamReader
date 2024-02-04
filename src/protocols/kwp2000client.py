@@ -2,6 +2,7 @@
 import struct
 from enum import IntEnum
 
+from src.protocols.kwp2000.constants import negative_response_codes
 from src.protocols.kwp2000.requests import AbstractKwpRequest
 from src.protocols.kwp2000.responses import KwpResponse
 from src.protocols.tp20 import TP20Transport
@@ -21,12 +22,10 @@ class NegativeResponseError(Exception):
         return self.message
 
 
-class InvalidServiceIdError(Exception):
-    pass
-
-
-class InvalidSubFunctionError(Exception):
-    pass
+class KWP_Error(Exception):
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
 
 
 class KWP2000Client:
@@ -45,7 +44,10 @@ class KWP2000Client:
         service_type = send_bytes[0]
         resp_sid = response[0]
         if service_type + 0x40 != resp_sid:
-            resp_sid = resp_sid - 0x40 - service_type
-            resp_sid_hex = hex(resp_sid)
-            raise InvalidServiceIdError("invalid response service id: {}".format(resp_sid_hex))
+            resp_text = negative_response_codes[resp_sid]
+
+            raise KWP_Error(resp_sid,
+                            f"invalid response service id: {hex(resp_sid)} \n"
+                            f"Description {resp_text} \n"
+                            )
         return kwp_request.get_response(bytearray(response))

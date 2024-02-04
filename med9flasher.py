@@ -2,7 +2,7 @@
 from src.connections import canbus
 from src.crypto.secaccess import MED91_WRITE_ACCESS
 from src.protocols.kwp2000.extended_requests import *
-from src.protocols.kwp2000client import KWP2000Client
+from src.protocols.kwp2000client import KWP2000Client, KWP_Error
 from src.protocols.tp20 import TP20Transport
 
 
@@ -16,23 +16,24 @@ class FlashProgrammer:
 
     def boot_into_bootloader(self):
         response = self.kwp.send(IDENT_9B())
-        # print(response)
+        print(response)
         # return
         response = self.kwp.send(IDENT_9C())
-        # print(response)
+        print(response)
         # return
-
-        # self.kwp.send(START_DIAGNOSTIC_SESSION_FLASH())
-        # return
+        try:
+            self.kwp.send(START_DIAGNOSTIC_SESSION_FLASH())
+        except KWP_Error as e:
+            if (e.code != 0x7F):
+                raise e
 
         response = self.kwp.send(REQUEST_SEED())
         assert response, REQUEST_SEED_RESPONSE
-        print(response)
         med9write = MED91_WRITE_ACCESS()
         key = med9write.calculate(response.seed)
         response = self.kwp.send(SEND_KEY(key))
+        response = self.kwp.send(START_DIAGNOSTIC_SESSION_FLASH())
         print(response)
-
         # sleep(response.boot_f)
         # self.kwp.send(REQUEST_SEED())
 

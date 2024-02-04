@@ -3,7 +3,6 @@ from typing import NamedTuple
 
 
 class SERVICE_TYPE(IntEnum):
-    DIAGNOSTIC_SESSION_CONTROL = 0x10
     ECU_RESET = 0x11
     READ_FREEZE_FRAME_DATA = 0x12
     READ_DIAGNOSTIC_TROUBLE_CODES = 0x13
@@ -11,7 +10,7 @@ class SERVICE_TYPE(IntEnum):
     READ_STATUS_OF_DIAGNOSTIC_TROUBLE_CODES = 0x17
     READ_DIAGNOSITC_TROUBE_CODES_BY_STATUS = 0x18
     READ_ECU_IDENTIFICATION = 0x1A
-    START_DIAGNOSTIC_SESSION = 0x20
+    START_DIAGNOSTIC_SESSION = 0x10
     STOP_DIAGNOSTIC_SESSION = 0x20
     READ_DATA_BY_LOCAL_IDENTIFIER = 0x21
     READ_DATA_BY_COMMON_IDENTIFIER = 0x22
@@ -94,18 +93,24 @@ class DynamicSourceDefinition(NamedTuple):
     memory_address: int
 
 
-_negative_response_codes = {
+negative_response_codes = {
+    0x00: "positiveResponse",
+    0x01: "ISOSAEReserved",
     0x10: "generalReject",
     0x11: "serviceNotSupported",
-    0x12: "subFunctionNotSupported-invalidFormat",
-    0x21: "busy-RepeatRequest",
-    0x22: "conditionsNotCorrect or requestSequenceError",
+    0x12: "subFunctionNotSupported",
+    0x13: "incorrectMessageLengthOrInvalidFormat",
+    0x14: "responseTooLong",
+    0x21: "busyRepeatRequest",
+    0x22: "conditionsNotCorrect",
     0x23: "routineNotComplete",
+    0x24: "requestSequenceError",
     0x31: "requestOutOfRange",
     0x33: "securityAccessDenied",
     0x35: "invalidKey",
     0x36: "exceedNumberOfAttempts",
     0x37: "requiredTimeDelayNotExpired",
+    0x38: "reservedByExtendedDataLinkSecurityDocument",
     0x40: "downloadNotAccepted",
     0x41: "improperDownloadType",
     0x42: "cantDownloadToSpecifiedAddress",
@@ -120,11 +125,33 @@ _negative_response_codes = {
     0x75: "illegalByteCountInBlockTransfer",
     0x76: "illegalBlockTransferType",
     0x77: "blockTransferDataChecksumError",
-    0x78: "reqCorrectlyRcvd-RspPending(requestCorrectlyReceived-ResponsePending)",
+    0x78: "requestCorrectlyReceived_ResponsePending",
     0x79: "incorrectByteCountDuringBlockTransfer",
-    0x80: 'subFunctionNotSupportedInActiveDiagnosticSession',
-    0x9A: 'dataDecompressionFailed',
-    0x9B: 'dataDecryptionFailed',
-    0xA0: 'EcuNotResponding',
-    0xA1: 'EcuAddressUnknown'
+    0x7E: "subFunctionNotSupportedInActiveSession",
+    0x7F: "serviceNotSupportedInActiveSession",
+    0x80: "ISOSAEReserved",
+    0x81: "rpmTooHigh",
+    0x82: "rpmTooLow",
+    0x83: "engineIsRunning",
+    0x84: "engineIsNotRunning",
+    0x85: "engineRunTimeTooLow",
+    0x86: "temperatureTooHigh",
+    0x87: "temperatureTooLow",
+    0x88: "vehicleSpeedTooHigh",
+    0x89: "vehicleSpeedTooLow",
+    0x8A: "throttle_PedalTooHigh",
+    0x8B: "throttle_PedalTooLow",
+    0x8C: "transmissionRangeNotInNeutral",
+    0x8D: "transmissionRangeNotInGear",
+    0x8F: "brakeSwitchesNotClosed",
+    0x90: "shifterLeverNotInPark",
+    0x91: "torqueConverterClutchLocked",
+    0x92: "voltageTooHigh",
+    0x93: "voltageTooLow",
+    0x94: "reservedForSpecificConditionsNotCorrect",
+    0xFF: "ISOSAEReserved",
+    0x9A: "dataDecompressionFailed",
+    0x9B: "dataDecryptionFailed",
+    0xA0: "EcuNotResponding",
+    0xA1: "EcuAddressUnknown"
 }

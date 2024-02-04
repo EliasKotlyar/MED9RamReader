@@ -14,7 +14,7 @@ class FlashToolCode:
 
 class Int_4Bytes:
     def __init__(self, value: int):
-        self.bytes = BitArray(uint=value, length=32).tobytes()
+        self.bytes = BitArray(uintbe=value, length=32).tobytes()
         pass
 
     def toBytes(self):
@@ -68,7 +68,7 @@ class START_DIAGNOSTIC_SESSION_FLASH(AbstractKwpRequest):
 class REQUEST_SEED(AbstractKwpRequest):
     def __init__(self):
         payload = bytearray([
-            ACCESS_TYPE.REQUEST_SEED
+            ACCESS_TYPE.PROGRAMMING_REQUEST_SEED
         ])
         ret = SECURITY_ACCESS(payload)
         super().__init__(ret.to_bytes())
@@ -81,7 +81,7 @@ class SEND_KEY(AbstractKwpRequest):
     def __init__(self, key: int):
         assert key, int
         payload = bytearray([
-            ACCESS_TYPE.SEND_KEY,
+            ACCESS_TYPE.PROGRAMMING_SEND_KEY,
         ]) + Int_4Bytes(key).toBytes()
         ret = SECURITY_ACCESS(payload)
         super().__init__(ret.to_bytes())

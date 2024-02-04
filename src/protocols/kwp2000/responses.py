@@ -3,7 +3,14 @@ from bitstring import BitArray
 
 class KwpResponse:
     def __init__(self, data: bytearray):
+        assert data, bytearray
         self.data = data
+
+    def __str__(self):
+        return (
+            "KwpResponse:\n"
+            f"    Data: {self.data.hex()}\n"
+        )
 
 
 class IDENT_9B_Response(KwpResponse):
@@ -90,7 +97,7 @@ class IDENT_9C_Response(KwpResponse):
 class REQUEST_SEED_RESPONSE(KwpResponse):
     def __init__(self, data: bytearray):
         super().__init__(data)
-        self.seed = BitArray(bytes=data[2:6], length=32).uint
+        self.seed = BitArray(bytes=data[2:6], length=32).uintbe
 
     def __str__(self):
         return (
