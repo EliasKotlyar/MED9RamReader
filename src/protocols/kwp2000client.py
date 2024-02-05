@@ -60,5 +60,6 @@ class KWP2000Client:
             raise KWP_Error(resp_sid,
                             f"invalid response service id: {hex(resp_sid)} \n"
                             f"Description {resp_text} \n"
+                            f"Full Response: {response.hex()} \n"
                             )
         return kwp_request.get_response(bytearray(response))

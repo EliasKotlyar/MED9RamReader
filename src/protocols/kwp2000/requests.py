@@ -13,7 +13,7 @@ class AbstractKwpRequest:
         return KwpResponse(data)
 
     def __str__(self):
-        return str(self.__class__.__name__)
+        return str(self.__class__.__name__) + " " + self.data.hex()
 
 
 class READ_ECU_IDENTIFICATION(AbstractKwpRequest):
@@ -66,13 +66,23 @@ class TRANSFER_DATA(AbstractKwpRequest):
 
 
 class REQUEST_TRANSFER_EXIT(AbstractKwpRequest):
-    def __init__(self, data: bytearray):
-        assert data, bytearray
-        data = bytearray([SERVICE_TYPE.REQUEST_TRANSFER_EXIT]) + data
+    def __init__(self):
+        data = bytearray([SERVICE_TYPE.REQUEST_TRANSFER_EXIT])
+        super().__init__(data)
+
+class REQUEST_RESET_ECU(AbstractKwpRequest):
+    def __init__(self):
+        data = bytearray([SERVICE_TYPE.ECU_RESET])
         super().__init__(data)
 
 
 class TESTER_PRESENT(AbstractKwpRequest):
     def __init__(self):
         data = bytearray([SERVICE_TYPE.TESTER_PRESENT, 0x1])
+        super().__init__(data)
+
+
+class READ_DATA_BY_COMMON_IDENTIFIER(AbstractKwpRequest):
+    def __init__(self):
+        data = bytearray([SERVICE_TYPE.READ_DATA_BY_COMMON_IDENTIFIER, 0x0, 0x0])
         super().__init__(data)

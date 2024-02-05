@@ -20,6 +20,10 @@ class MessageTimeoutError(TimeoutError):
     pass
 
 
+class DisconnectException(Exception):
+    pass
+
+
 class TP20Transport:
     def __init__(self, canbus: CANBUS, module: int, timeout: float = 0.):
         """Create TP20Transport object and open a channel"""
@@ -97,9 +101,9 @@ class TP20Transport:
         cmd = TP20_CHANNEL_PARAMETER(
             opcode=TP20_CHANNEL_PARAMETER_OPCode.PARAMETERS_REQUEST,
             block_size=0x0f,
-            timing_param1=0x8a,
+            timing_param1=0xc1,
             timing_param2=0xff,
-            timing_param3=0x0a,
+            timing_param3=0x41,
             timing_param4=0xff
         )
         self.can_send_channel_params(cmd)
@@ -160,6 +164,8 @@ class TP20Transport:
         raw_can_data = self.can_recv(self.rx_addr)
         payload = raw_can_data.data
         if len(payload) == 1:
+            if payload[0] == TP20_CHANNEL_PARAMETER_OPCode.DISCONNECT:
+                raise DisconnectException("Disconnected")
             for member in TP20_CHANNEL_PARAMETER_OPCode:
                 if member.value == payload[0]:
                     raise Exception(f'Received Opcode {member.name} ({hex(member.value)})')
@@ -189,8 +195,21 @@ class TP20Transport:
         return data
 
     def keepChannelAlive(self):
+
         cmd = TP20_CHANNEL_PARAMETER(
             opcode=TP20_CHANNEL_PARAMETER_OPCode.CHANNEL_TEST,
         )
         self.can_send_raw(cmd.to_bytes())
         self.can_recv()
+
+    def wait_until_disconnect(self):
+        try:
+            response = self.can_data_recv()
+            raise Exception('Got a different message than disconnect!')
+        except DisconnectException:
+            pass
+        self.canbus.can_send(CAN_MESSAGE(self.tx_addr, bytearray([0xA8])))
+
+    def send_channel_close(self):
+        pass
+

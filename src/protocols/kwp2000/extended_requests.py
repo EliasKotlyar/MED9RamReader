@@ -30,6 +30,15 @@ class Int_3Bytes:
         return self.bytes.tobytes()
 
 
+class Int_2Bytes:
+    def __init__(self, value: int):
+        self.bytes = BitArray(uint=value, length=16)
+        pass
+
+    def toBytes(self):
+        return self.bytes.tobytes()
+
+
 class DataFormatIdentifier:
     def __init__(self, comp_type: COMPRESSION_TYPE, enc_type: ENCRYPTION_TYPE):
         self.bytes = BitArray(uint=0, length=8)
@@ -38,7 +47,7 @@ class DataFormatIdentifier:
         pass
 
     def toBytes(self):
-        return bytearray(self.bytes)
+        return bytearray(self.bytes.tobytes())
 
 
 class IDENT_9B(AbstractKwpRequest):
@@ -90,24 +99,40 @@ class SEND_KEY(AbstractKwpRequest):
 class REQUEST_DOWNLOAD_MED9(AbstractKwpRequest):
     def __init__(self, memory_address: int, uncompressed_size: int):
         compression_type = COMPRESSION_TYPE.COMPRESSION_1
-        encryption_type = ENCRYPTION_TYPE.UNENCRYPTED
+        encryption_type = ENCRYPTION_TYPE.ENCRYPTION_1
         identifier = DataFormatIdentifier(compression_type, encryption_type)
-        memory_address = Int_4Bytes(memory_address)
-        uncompressed_size = Int_4Bytes(uncompressed_size)
-        payload = identifier.toBytes() + memory_address.toBytes() + uncompressed_size.toBytes()
+        memory_address = Int_3Bytes(memory_address)
+        uncompressed_size = Int_3Bytes(uncompressed_size)
+        m = memory_address.toBytes()
+        payload = memory_address.toBytes() + identifier.toBytes() + uncompressed_size.toBytes()
         ret = REQUEST_DOWNLOAD(payload)
         super().__init__(ret.to_bytes())
 
 
 class START_ROUTINE_ERASE_FLASH(AbstractKwpRequest):
-    def __init__(self):
-        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.ERASE_FLASH, bytearray([]))
+    def __init__(self, start_addr: int, end_address: int, ftc: bytearray):
+        assert isinstance(start_addr, int)
+        assert isinstance(end_address, int)
+        assert isinstance(ftc, bytearray)
+        assert len(ftc) == 6
+        start_addr = Int_3Bytes(start_addr)
+        end_address = Int_3Bytes(end_address)
+
+        payload = start_addr.toBytes() + end_address.toBytes() + ftc
+        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.ERASE_FLASH, bytearray(payload))
         super().__init__(ret.to_bytes())
 
 
 class START_ROUTINE_CHECKSUM(AbstractKwpRequest):
-    def __init__(self):
-        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, bytearray([]))
+    def __init__(self, start_addr: int, end_address: int, checksum: int):
+        assert isinstance(start_addr, int)
+        assert isinstance(end_address, int)
+        assert isinstance(checksum, int)
+        start_addr = Int_3Bytes(start_addr)
+        end_address = Int_3Bytes(end_address)
+        checksum = Int_2Bytes(checksum)
+        payload = start_addr.toBytes() + end_address.toBytes() + checksum.toBytes()
+        ret = START_ROUTINE_BY_LOCAL_IDENTIFIER(ROUTINE_CONTROL_TYPE.CALCULATE_FLASH_CHECKSUM, payload)
         super().__init__(ret.to_bytes())
 
 
