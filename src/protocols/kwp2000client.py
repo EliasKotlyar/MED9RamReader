@@ -2,13 +2,16 @@
 import struct
 from enum import IntEnum
 
+from src.misc.colorlogger import ColorLogger
 from src.protocols.kwp2000.constants import negative_response_codes
 from src.protocols.kwp2000.requests import AbstractKwpRequest
 from src.protocols.kwp2000.responses import KwpResponse
-from src.protocols.tp20 import TP20Transport
+
 from typing import NamedTuple, List
 from src.protocols.logger import Logger
 import logging
+
+from src.protocols.tp20client import TP20Transport
 
 
 class NegativeResponseError(Exception):
@@ -35,16 +38,24 @@ class KWP2000Client:
 
     def send(self, kwp_request: AbstractKwpRequest) -> KwpResponse:
         send_bytes = bytes(kwp_request.to_bytes())
-        self.logger.warning(f"Sending " + str(kwp_request))
-        self.logger.warning(f"KWP TX: {send_bytes.hex()}")
+        self.logger.info(ColorLogger.color(f"Sending " + str(kwp_request), "pink"))
+        # self.logger.warning(f"KWP TX: {send_bytes.hex()}")
+        #color = "yellow"
+        self.logger.info(ColorLogger.color("KWP DATA TX: " + str(send_bytes.hex()), "yellow"))
+
         self.transport.send(send_bytes)
         response = self.transport.recv()
-        self.logger.warning(f"KWP RX: {response.hex()}")
+        #color = "red"
+        self.logger.info(ColorLogger.color("KWP DATA RX: " + str(response.hex()), "red"))
+        # self.logger.warning(f"KWP RX: {response.hex()}")
 
         service_type = send_bytes[0]
         resp_sid = response[0]
         if service_type + 0x40 != resp_sid:
-            resp_text = negative_response_codes[resp_sid]
+            if resp_sid in negative_response_codes:
+                resp_text = negative_response_codes[resp_sid]
+            else:
+                resp_text = f"No Response Text for {resp_sid}"
 
             raise KWP_Error(resp_sid,
                             f"invalid response service id: {hex(resp_sid)} \n"

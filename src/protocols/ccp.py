@@ -91,7 +91,7 @@ class CcpClient():
       print(f"CAN-TX: {hex(self.tx_addr)} - 0x{bytes.hex(tx_data)}")
     assert len(tx_data) == 8, "data is not 8 bytes"
 
-    self.canbus.can_send(self.tx_addr, tx_data,self.timeout)
+    self.canbus.can_send_raw(self.tx_addr, tx_data, self.timeout)
 
   def _recv_dto(self, timeout: float) -> bytes:
     start_time = time.time()

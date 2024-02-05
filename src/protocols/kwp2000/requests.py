@@ -71,3 +71,8 @@ class REQUEST_TRANSFER_EXIT(AbstractKwpRequest):
         data = bytearray([SERVICE_TYPE.REQUEST_TRANSFER_EXIT]) + data
         super().__init__(data)
 
+
+class TESTER_PRESENT(AbstractKwpRequest):
+    def __init__(self):
+        data = bytearray([SERVICE_TYPE.TESTER_PRESENT, 0x1])
+        super().__init__(data)
