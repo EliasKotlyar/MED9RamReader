@@ -10,8 +10,11 @@ from typing import Optional, List, Tuple
 
 from src.connections.canbus import CANBUS, CAN_MESSAGE
 from src.misc.colorlogger import ColorLogger
-from src.protocols.logger import Logger
-from src.protocols.tp20.requests import *
+from src.protocols.tp20.request_channel_parameter import TP20_CHANNEL_PARAMETER, TP20_CHANNEL_PARAMETER_OPCode, \
+    TP20_CHANNEL_PARAMETER_ONEBYTE
+from src.protocols.tp20.request_channel_setup import TP20_CHANNEL_SETUP, TP20_CHANNEL_SETUP_LOGICAL_ADDR, \
+    TP20_CHANNEL_OPCode, TP20_CHANNEL_PROTOCOL_TYPES
+from src.protocols.tp20.requests_data import *
 
 BROADCAST_ADDR = 0x200
 
@@ -66,6 +69,13 @@ class TP20Transport:
         self.canbus.can_send(CAN_MESSAGE(addr, parameter.to_bytes()))
         time.sleep(self.time_between_packets)
 
+    def can_send_channel_params_onebyte(self, parameter: TP20_CHANNEL_PARAMETER_ONEBYTE):
+        assert isinstance(parameter, TP20_CHANNEL_PARAMETER_ONEBYTE)
+        addr = self.tx_addr
+        self.logger.info(f"TP20 Parameter Setup TX: {hex(addr)} - {parameter.to_bytes().hex()}")
+        self.canbus.can_send(CAN_MESSAGE(addr, parameter.to_bytes()))
+        time.sleep(self.time_between_packets)
+
     def can_send_data(self, data: TP20_DATA):
         self.canbus.can_send(CAN_MESSAGE(self.tx_addr, data.to_bytes()))
         color = "blue"
@@ -86,7 +96,7 @@ class TP20Transport:
             setup_request=TP20_CHANNEL_OPCode.SETUP_REQUEST,
             rx_id=0x100,
             tx_id=0x300,
-            protocol_type=0x01
+            protocol_type=TP20_CHANNEL_PROTOCOL_TYPES.KWP
         )
 
         self.can_send_channel_setup(cmd, BROADCAST_ADDR)
@@ -102,9 +112,7 @@ class TP20Transport:
             opcode=TP20_CHANNEL_PARAMETER_OPCode.PARAMETERS_REQUEST,
             block_size=0x0f,
             timing_param1=0xc1,
-            timing_param2=0xff,
             timing_param3=0x41,
-            timing_param4=0xff
         )
         self.can_send_channel_params(cmd)
         can_msg = self.can_recv(self.rx_addr)
@@ -120,8 +128,10 @@ class TP20Transport:
         we expect an ack with our own sequence + 1"""
         # self.increment_tx_ctr()
         response = self.can_data_recv()
-        if response.opcode != TP20_DATA_OPCODES.ACK_READY_FOR_NEXT_PACKET:
-            raise RuntimeError(f"Wrong Opcode received: {response.opcode}")
+        if response.opcode == TP20_DATA_OPCODES.ACK_NOT_READY_FOR_NEXT_PACKET:
+            time.sleep(0.0002)
+        elif response.opcode != TP20_DATA_OPCODES.ACK_READY_FOR_NEXT_PACKET:
+            raise RuntimeError(f"Wrong Opcode received: {response.opcode.name}")
 
         # seq = (self.tx_seq) & 0xF
         # if response.sequence != seq:
@@ -163,14 +173,24 @@ class TP20Transport:
         t = self.rx_seq
         raw_can_data = self.can_recv(self.rx_addr)
         payload = raw_can_data.data
-        if len(payload) == 1:
-            if payload[0] == TP20_CHANNEL_PARAMETER_OPCode.DISCONNECT:
-                raise DisconnectException("Disconnected")
+        if payload[0] == TP20_CHANNEL_PARAMETER_OPCode.DISCONNECT:
+            raise DisconnectException("Disconnected")
+        elif payload[0] == TP20_CHANNEL_PARAMETER_OPCode.CHANNEL_TEST:
+            cmd = TP20_CHANNEL_PARAMETER_ONEBYTE(
+                opcode=TP20_CHANNEL_PARAMETER_OPCode.CHANNEL_TEST,
+            )
+            self.can_send_channel_params_onebyte(cmd)
+            response = self.can_data_recv()
+
+        elif payload[0] == TP20_CHANNEL_PARAMETER_OPCode.PARAMETERS_RESPONSE:
+            # Just Skip
+            response = self.can_data_recv()
+        else:
+            # raise DisconnectException("Exception!" + payload.hex())
             for member in TP20_CHANNEL_PARAMETER_OPCode:
                 if member.value == payload[0]:
                     raise Exception(f'Received Opcode {member.name} ({hex(member.value)})')
-
-        response = TP20_DATA.from_bytes(payload)
+            response = TP20_DATA.from_bytes(payload)
 
         color = "green"
 
@@ -212,4 +232,3 @@ class TP20Transport:
 
     def send_channel_close(self):
         pass
-

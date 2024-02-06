@@ -72,11 +72,29 @@ class ACCESS_TYPE(IntEnum):
 class COMPRESSION_TYPE(IntEnum):
     UNCOMPRESSED = 0x0
     COMPRESSION_1 = 0x01
+    BoschUncompressed = 0x9
 
 
 class ENCRYPTION_TYPE(IntEnum):
     UNENCRYPTED = 0x0
     ENCRYPTION_1 = 0x01
+
+
+class CompressionType(IntEnum):
+    Uncompressed = 0x00
+    Bosch = 0x10
+    Hitachi = 0x20
+    Marelli = 0x30
+    Lucas = 0x40
+    BoschUncompressed = 0x90  # for testing
+
+
+class EncryptionType(IntEnum):
+    Unencrypted = 0x00
+    Bosch = 0x01
+    Hitachi = 0x02
+    Marelli = 0x03
+    Lucas = 0x04
 
 
 class DYNAMIC_DEFINITION_TYPE(IntEnum):
@@ -93,65 +111,62 @@ class DynamicSourceDefinition(NamedTuple):
     memory_address: int
 
 
-negative_response_codes = {
-    0x00: "positiveResponse",
-    0x01: "ISOSAEReserved",
-    0x10: "generalReject",
-    0x11: "serviceNotSupported",
-    0x12: "subFunctionNotSupported",
-    0x13: "incorrectMessageLengthOrInvalidFormat",
-    0x14: "responseTooLong",
-    0x21: "busyRepeatRequest",
-    0x22: "conditionsNotCorrect",
-    0x23: "routineNotComplete",
-    0x24: "requestSequenceError",
-    0x31: "requestOutOfRange",
-    0x33: "securityAccessDenied",
-    0x35: "invalidKey",
-    0x36: "exceedNumberOfAttempts",
-    0x37: "requiredTimeDelayNotExpired",
-    0x38: "reservedByExtendedDataLinkSecurityDocument",
-    0x40: "downloadNotAccepted",
-    0x41: "improperDownloadType",
-    0x42: "cantDownloadToSpecifiedAddress",
-    0x43: "cantDownloadNumberOfBytesRequested",
-    0x50: "uploadNotAccepted",
-    0x51: "improperUploadType",
-    0x52: "cantUploadFromSpecifiedAddress",
-    0x53: "cantUploadNumberOfBytesRequested",
-    0x71: "transferSuspended",
-    0x72: "transferAborted",
-    0x74: "illegalAddressInBlockTransfer",
-    0x75: "illegalByteCountInBlockTransfer",
-    0x76: "illegalBlockTransferType",
-    0x77: "blockTransferDataChecksumError",
-    0x78: "requestCorrectlyReceived_ResponsePending",
-    0x79: "incorrectByteCountDuringBlockTransfer",
-    0x7E: "subFunctionNotSupportedInActiveSession",
-    0x7F: "serviceNotSupportedInActiveSession",
-    0x80: "ISOSAEReserved",
-    0x81: "rpmTooHigh",
-    0x82: "rpmTooLow",
-    0x83: "engineIsRunning",
-    0x84: "engineIsNotRunning",
-    0x85: "engineRunTimeTooLow",
-    0x86: "temperatureTooHigh",
-    0x87: "temperatureTooLow",
-    0x88: "vehicleSpeedTooHigh",
-    0x89: "vehicleSpeedTooLow",
-    0x8A: "throttle_PedalTooHigh",
-    0x8B: "throttle_PedalTooLow",
-    0x8C: "transmissionRangeNotInNeutral",
-    0x8D: "transmissionRangeNotInGear",
-    0x8F: "brakeSwitchesNotClosed",
-    0x90: "shifterLeverNotInPark",
-    0x91: "torqueConverterClutchLocked",
-    0x92: "voltageTooHigh",
-    0x93: "voltageTooLow",
-    0x94: "reservedForSpecificConditionsNotCorrect",
-    0xFF: "ISOSAEReserved",
-    0x9A: "dataDecompressionFailed",
-    0x9B: "dataDecryptionFailed",
-    0xA0: "EcuNotResponding",
-    0xA1: "EcuAddressUnknown"
-}
+class NegativeResponseCode(IntEnum):
+    positiveResponse = 0x00
+    ISOSAEReserved = 0x01
+    generalReject = 0x10
+    serviceNotSupported = 0x11
+    subFunctionNotSupported = 0x12
+    incorrectMessageLengthOrInvalidFormat = 0x13
+    responseTooLong = 0x14
+    busyRepeatRequest = 0x21
+    conditionsNotCorrect = 0x22
+    routineNotComplete = 0x23
+    requestSequenceError = 0x24
+    requestOutOfRange = 0x31
+    securityAccessDenied = 0x33
+    invalidKey = 0x35
+    exceedNumberOfAttempts = 0x36
+    requiredTimeDelayNotExpired = 0x37
+    reservedByExtendedDataLinkSecurityDocument = 0x38
+    downloadNotAccepted = 0x40
+    improperDownloadType = 0x41
+    cantDownloadToSpecifiedAddress = 0x42
+    cantDownloadNumberOfBytesRequested = 0x43
+    uploadNotAccepted = 0x50
+    improperUploadType = 0x51
+    cantUploadFromSpecifiedAddress = 0x52
+    cantUploadNumberOfBytesRequested = 0x53
+    transferSuspended = 0x71
+    transferAborted = 0x72
+    illegalAddressInBlockTransfer = 0x74
+    illegalByteCountInBlockTransfer = 0x75
+    illegalBlockTransferType = 0x76
+    blockTransferDataChecksumError = 0x77
+    requestCorrectlyReceived_ResponsePending = 0x78
+    incorrectByteCountDuringBlockTransfer = 0x79
+    subFunctionNotSupportedInActiveSession = 0x7E
+    serviceNotSupportedInActiveSession = 0x7F
+    rpmTooHigh = 0x81
+    rpmTooLow = 0x82
+    engineIsRunning = 0x83
+    engineIsNotRunning = 0x84
+    engineRunTimeTooLow = 0x85
+    temperatureTooHigh = 0x86
+    temperatureTooLow = 0x87
+    vehicleSpeedTooHigh = 0x88
+    vehicleSpeedTooLow = 0x89
+    throttle_PedalTooHigh = 0x8A
+    throttle_PedalTooLow = 0x8B
+    transmissionRangeNotInNeutral = 0x8C
+    transmissionRangeNotInGear = 0x8D
+    brakeSwitchesNotClosed = 0x8F
+    shifterLeverNotInPark = 0x90
+    torqueConverterClutchLocked = 0x91
+    voltageTooHigh = 0x92
+    voltageTooLow = 0x93
+    reservedForSpecificConditionsNotCorrect = 0x94
+    dataDecompressionFailed = 0x9A
+    dataDecryptionFailed = 0x9B
+    EcuNotResponding = 0xA0
+    EcuAddressUnknown = 0xA1

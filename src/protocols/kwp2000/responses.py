@@ -1,9 +1,11 @@
 from bitstring import BitArray
 
+from src.protocols.kwp2000.constants import NegativeResponseCode
+
 
 class KwpResponse:
     def __init__(self, data: bytearray):
-        assert data, bytearray
+        assert isinstance(data, bytearray)
         self.data = data
 
     def __str__(self):
@@ -13,8 +15,30 @@ class KwpResponse:
         )
 
 
+class KwpNegativeResponse:
+    def __init__(self, data: bytearray):
+        assert isinstance(data, bytearray)
+        self.data = data
+        self.code = data[2]
+        try:
+            errorcode = NegativeResponseCode(self.code)
+            self.description = errorcode.name
+        except ValueError:
+            self.description = "Unknown Error: " + hex(self.code)
+
+    def __str__(self):
+        return (
+            "KwpResponse:\n"
+            f"    Code: {hex(self.code)}\n"
+            f"    Description: {self.description}\n"
+            f"    Data: {self.data.hex()}\n"
+
+        )
+
+
 class IDENT_9B_Response(KwpResponse):
     def __init__(self, data: bytearray):
+        assert isinstance(data, bytearray)
         super().__init__(data)
         self.vw_part_nr = data[0:12].decode('ascii', errors='ignore')
         self.datenstand = data[15:17].decode('ascii', errors='ignore')
@@ -66,6 +90,7 @@ class IDENT_9B_Response(KwpResponse):
 
 class IDENT_9C_Response(KwpResponse):
     def __init__(self, data: bytearray):
+        assert isinstance(data, bytearray)
         super().__init__(data)
         bits_program_status = BitArray(uint=data[1], length=8)
         self.no_error = bool(bits_program_status[0])
@@ -96,6 +121,7 @@ class IDENT_9C_Response(KwpResponse):
 
 class REQUEST_SEED_RESPONSE(KwpResponse):
     def __init__(self, data: bytearray):
+        assert isinstance(data, bytearray)
         super().__init__(data)
         self.seed = BitArray(bytes=data[2:6], length=32).uintbe
 

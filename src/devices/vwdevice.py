@@ -1,18 +1,17 @@
 from src.protocols.tp20 import TP20Transport
-from src.protocols.kwp2000 import KWP2000Client, ECU_IDENTIFICATION_TYPE, DYNAMIC_DEFINITION_TYPE, \
+from src.protocols.kwp2000 import DYNAMIC_DEFINITION_TYPE, \
     DynamicSourceDefinition
-import can
 import struct
 import time
 
 CHUNK_SIZE = 4
-from src.protocols.kwp2000 import ACCESS_TYPE, ROUTINE_CONTROL_TYPE, KWP2000Client, SESSION_TYPE, \
+from src.protocols.kwp2000 import ACCESS_TYPE, KWP2000Client, SESSION_TYPE, \
     ECU_IDENTIFICATION_TYPE, COMPRESSION_TYPE, ENCRYPTION_TYPE
 from src.connections import canbus
 from src.protocols.ccp import CcpClient, BYTE_ORDER
 from src.crypto.secaccess import SecurityAccessInterface
 from src.protocols.logger import Logger
-from src.protocols.measuringblocks import MeasuringBlockGroup
+from src.protocols.kwp2000.measuringblocks import MeasuringBlockGroup
 
 
 class VWDevice:
@@ -51,8 +50,8 @@ class VWDevice:
             secAccess2 = ACCESS_TYPE.PROGRAMMING_SEND_KEY
             pass
         elif (secInterface.getAccessType() == secInterface.NORMAL):
-            secAccess1 = ACCESS_TYPE.REQUEST_SEED
-            secAccess2 = ACCESS_TYPE.SEND_KEY
+            secAccess1 = ACCESS_TYPE.REQUEST_SEED_PROGRAMMING
+            secAccess2 = ACCESS_TYPE.SEND_KEY_PROGRAMMING
             pass
 
         self.print("\nRequest seed")
